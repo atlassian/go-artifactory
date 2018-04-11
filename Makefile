@@ -7,5 +7,8 @@ dep:
 	@misc/scripts/deps-ensure
 	@dep ensure -v
 
+fmt:
+	@go fmt ./...
+
 test:
-	@go test -v ./pkg/...
+	@go test -v -race ./...
