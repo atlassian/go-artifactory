@@ -1,6 +1,8 @@
 # go-artifactory #
 go-artifactory is a Go client library for accessing the [Artifactory API](https://www.jfrog.com/confluence/display/RTF/Artifactory+REST+API)
 
+[![Build Status](https://travis-ci.org/atlassian/go-artifactory.svg?branch=master)](https://travis-ci.org/atlassian/go-artifactory)
+
 ## Requirements ##
 - Go version 1.9+
 - Dep is used for dependency management
