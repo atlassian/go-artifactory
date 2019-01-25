@@ -1,14 +1,15 @@
-package artifactory
+package v1
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/client"
 	"net/http"
 )
 
 // ArtifactService exposes the Artifact API endpoints from Artifactory
-type ArtifactService service
+type ArtifactService client.Service
 
 // SingleReplicationConfig is the model of the Artifactory Replication Config
 type SingleReplicationConfig struct {
@@ -45,12 +46,12 @@ func (r ReplicationConfig) String() string {
 // Security: Requires a privileged user
 func (s *ArtifactService) SetRepositoryReplicationConfig(ctx context.Context, repoKey string, config *ReplicationConfig) (*http.Response, error) {
 	path := fmt.Sprintf("/api/replications/multiple/%s", repoKey)
-	req, err := s.client.NewJSONEncodedRequest("PUT", path, config)
+	req, err := s.Client.NewJSONEncodedRequest("PUT", path, config)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.client.Do(ctx, req, nil)
+	return s.Client.Do(ctx, req, nil)
 }
 
 // Returns the replication configuration for the given repository key, if found. Supported by local and remote repositories. Note: The 'enableEventReplication' parameter refers to both push and pull replication.
@@ -58,14 +59,14 @@ func (s *ArtifactService) SetRepositoryReplicationConfig(ctx context.Context, re
 // Security: Requires a privileged user
 func (s *ArtifactService) GetRepositoryReplicationConfig(ctx context.Context, repoKey string) (*ReplicationConfig, *http.Response, error) {
 	path := fmt.Sprintf("/api/replications/%s", repoKey)
-	req, err := s.client.NewRequest("GET", path, nil)
+	req, err := s.Client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", mediaTypeReplicationConfig)
 
 	replications := make([]SingleReplicationConfig, 0)
-	resp, err := s.client.Do(ctx, req, &replications)
+	resp, err := s.Client.Do(ctx, req, &replications)
 
 	if err != nil {
 		return nil, resp, err
@@ -93,19 +94,19 @@ func (s *ArtifactService) GetRepositoryReplicationConfig(ctx context.Context, re
 // Security: Requires a privileged user
 func (s *ArtifactService) UpdateRepositoryReplicationConfig(ctx context.Context, repoKey string, config *ReplicationConfig) (*http.Response, error) {
 	path := fmt.Sprintf("/api/replications/multiple/%s", repoKey)
-	req, err := s.client.NewJSONEncodedRequest("POST", path, config)
+	req, err := s.Client.NewJSONEncodedRequest("POST", path, config)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.client.Do(ctx, req, nil)
+	return s.Client.Do(ctx, req, nil)
 }
 
 func (s *ArtifactService) DeleteRepositoryReplicationConfig(ctx context.Context, repoKey string) (*http.Response, error) {
 	path := fmt.Sprintf("/api/replications/%s", repoKey)
-	req, err := s.client.NewJSONEncodedRequest("DELETE", path, nil)
+	req, err := s.Client.NewJSONEncodedRequest("DELETE", path, nil)
 	if err != nil {
 		return nil, err
 	}
-	return s.client.Do(ctx, req, nil)
+	return s.Client.Do(ctx, req, nil)
 }

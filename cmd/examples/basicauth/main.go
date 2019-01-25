@@ -3,25 +3,26 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/atlassian/go-artifactory/pkg/artifactory"
-	"os"
+	"github.com/atlassian/go-artifactory/v2/pkg/artifactory"
+	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/transport"
 )
 
 func main() {
-	tp := artifactory.BasicAuthTransport{
-		Username: os.Getenv("ARTIFACTORY_USERNAME"),
-		Password: os.Getenv("ARTIFACTORY_PASSWORD"),
+	tp := transport.BasicAuth{
+		Username: "admin",
+		Password: "password",
 	}
 
-	client, err := artifactory.NewClient(os.Getenv("ARTIFACTORY_URL"), tp.Client())
+	rt, err := artifactory.NewClient("http://localhost:8080/artifactory", tp.Client())
 	if err != nil {
 		fmt.Printf("\nerror: %v\n", err)
 		return
 	}
 
-	_, _, err = client.System.Ping(context.Background())
+	_, _, err = rt.System.Ping(context.Background())
 	if err != nil {
 		fmt.Printf("\nerror: %v\n", err)
+		return
 	} else {
 		fmt.Println("OK")
 	}

@@ -5,11 +5,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/atlassian/go-artifactory/pkg/artifactory"
+	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/transport"
+	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/v1"
 	"os"
 )
 
 func main() {
-	tp := artifactory.BasicAuthTransport{
+	tp := transport.BasicAuth{
 		Username: os.Getenv("ARTIFACTORY_USERNAME"),
 		Password: os.Getenv("ARTIFACTORY_PASSWORD"),
 	}
@@ -20,7 +22,7 @@ func main() {
 		return
 	}
 
-	opts := artifactory.RepositoryListOptions{
+	opts := v1.RepositoryListOptions{
 		Type: "local",
 	}
 	repos, _, err := client.Repositories.ListRepositories(context.Background(), &opts)

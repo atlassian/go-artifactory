@@ -1,14 +1,15 @@
-package artifactory
+package v1
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/client"
 	"net/http"
 	"strings"
 )
 
-type RepositoriesService service
+type RepositoriesService client.Service
 
 type RepositoryDetails struct {
 	Key         *string `json:"key,omitempty"`
@@ -33,14 +34,14 @@ type RepositoryListOptions struct {
 // Security: Requires a privileged user (can be anonymous)
 func (s *RepositoriesService) ListRepositories(ctx context.Context, opt *RepositoryListOptions) (*[]RepositoryDetails, *http.Response, error) {
 	path := "/api/repositories/"
-	req, err := s.client.NewJSONEncodedRequest("GET", path, opt)
+	req, err := s.Client.NewJSONEncodedRequest("GET", path, opt)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", mediaTypeRepositoryDetails)
 
 	repos := new([]RepositoryDetails)
-	resp, err := s.client.Do(ctx, req, &repos)
+	resp, err := s.Client.Do(ctx, req, &repos)
 	return repos, resp, err
 }
 
@@ -355,17 +356,17 @@ func (s *RepositoriesService) DeleteVirtual(ctx context.Context, repo string) (*
 // Generic repo CRUD operations
 func (s *RepositoriesService) create(ctx context.Context, repo string, v interface{}) (*http.Response, error) {
 	path := fmt.Sprintf("/api/repositories/%s", repo)
-	req, err := s.client.NewJSONEncodedRequest("PUT", path, v)
+	req, err := s.Client.NewJSONEncodedRequest("PUT", path, v)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.client.Do(ctx, req, nil)
+	return s.Client.Do(ctx, req, nil)
 }
 
 func (s *RepositoriesService) get(ctx context.Context, repo string, v interface{}) (interface{}, *http.Response, error) {
 	path := fmt.Sprintf("/api/repositories/%v", repo)
-	req, err := s.client.NewRequest("GET", path, nil)
+	req, err := s.Client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -373,25 +374,25 @@ func (s *RepositoriesService) get(ctx context.Context, repo string, v interface{
 	acceptHeaders := []string{mediaTypeLocalRepository, mediaTypeVirtualRepository, mediaTypeRemoteRepository}
 	req.Header.Set("Accept", strings.Join(acceptHeaders, ", "))
 
-	resp, err := s.client.Do(ctx, req, v)
+	resp, err := s.Client.Do(ctx, req, v)
 	return v, resp, err
 }
 
 func (s *RepositoriesService) update(ctx context.Context, repo string, v interface{}) (*http.Response, error) {
 	path := fmt.Sprintf("/api/repositories/%v", repo)
-	req, err := s.client.NewJSONEncodedRequest("POST", path, v)
+	req, err := s.Client.NewJSONEncodedRequest("POST", path, v)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.client.Do(ctx, req, nil)
+	return s.Client.Do(ctx, req, nil)
 }
 
 func (s *RepositoriesService) delete(ctx context.Context, repo string) (*http.Response, error) {
 	path := fmt.Sprintf("/api/repositories/%v", repo)
-	req, err := s.client.NewJSONEncodedRequest("DELETE", path, nil)
+	req, err := s.Client.NewJSONEncodedRequest("DELETE", path, nil)
 	if err != nil {
 		return nil, err
 	}
-	return s.client.Do(ctx, req, nil)
+	return s.Client.Do(ctx, req, nil)
 }

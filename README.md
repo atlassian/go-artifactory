@@ -16,7 +16,7 @@ Construct a new Artifactory client, then use the various services on the client 
 access different parts of the Artifactory API. For example:
 
 ```go
-client := artifactory.NewClient("http://localhost/artifactory", nil)
+client := artifactory.NewClient(client, nil)
 
 // list all repositories
 repos, resp, err := client.Repositories.List(context.Background(), nil)
@@ -25,7 +25,7 @@ repos, resp, err := client.Repositories.List(context.Background(), nil)
 Some API methods have optional parameters that can be passed. For example:
 
 ```go
-client := artifactroy.NewClient("http://localhost/artifactory", nil)
+client := artifactroy.NewClient(client, nil)
 
 // list all public local repositories
 opt := &artifactory.RepositoryListOptions{Type: "local"}
@@ -121,7 +121,8 @@ Generally methods will be annotated with a since version.
 
 ## Reporting issues ##
 
-We believe in open contributions and the power of a strong development community. Please read our [Contributing guidelines][CONTRIBUTING] on how to contribute back and report issues to go-stride.
+We believe in open contributions and the power of a strong development community. Please read our 
+[Contributing guidelines](.github/CONTRIBUTING.md) on how to contribute back and report issues to go-artifactory.
 
 ## Contributors ##
 
@@ -130,7 +131,7 @@ Pull requests, issues and comments are welcomed. For pull requests:
 * Add tests for new features and bug fixes
 * Follow the existing style
 * Separate unrelated changes into multiple pull requests
-* Read [Contributing guidelines][CONTRIBUTING] for more details
+* Read [Contributing guidelines](.github/CONTRIBUTING.md) for more details
 
 See the existing issues for things to start contributing.
 
@@ -156,5 +157,5 @@ those contributing as an individual.
 Copyright (c) 2017 Atlassian and others. Apache 2.0 licensed, see [LICENSE][LICENSE] file.
 
 
-[CONTRIBUTING]: ./CONTRIBUTING.md
+[CONTRIBUTING]: .github/CONTRIBUTING.md
 [LICENSE]: ./LICENSE.txt

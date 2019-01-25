@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/atlassian/go-artifactory/pkg/artifactory"
+	"github.com/atlassian/go-artifactory/v2/pkg/artifactory"
+	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/transport"
 	"os"
 )
 
 func main() {
-	tp := artifactory.TokenAuthTransport{
+	tp := transport.TokenAuth{
 		Token: os.Getenv("ARTIFACTORY_TOKEN"),
 	}
 
