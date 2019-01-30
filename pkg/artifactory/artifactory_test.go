@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -51,4 +52,24 @@ func TestTokenAuthTransport(t *testing.T) {
 
 	_, _, err = client.System.Ping(context.Background())
 	assert.Nil(t, err)
+}
+
+func TestDo(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("Hello World"))
+	}))
+
+	client, err := NewClient(server.URL, nil)
+	assert.Nil(t, err)
+
+	request, err := client.NewRequest(http.MethodGet, "", nil)
+	assert.Nil(t, err)
+
+	resp, err := client.Do(context.TODO(), request, nil)
+	assert.Nil(t, err)
+	body, err := ioutil.ReadAll(resp.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, "Hello World", string(body))
+	defer resp.Body.Close()
 }

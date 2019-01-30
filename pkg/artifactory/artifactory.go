@@ -180,7 +180,6 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 
 		return nil, err
 	}
-	defer resp.Body.Close()
 
 	err = checkResponse(resp)
 	if err != nil {
@@ -198,6 +197,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 				err = nil // ignore EOF errors caused by empty response body
 			}
 		}
+		resp.Body.Close()
 	}
 
 	return resp, err
