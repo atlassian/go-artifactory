@@ -304,6 +304,7 @@ type VirtualRepository struct {
 	ForceNugetAuthentication                      *bool     `json:"forceNugetAuthentication,omitempty"`
 	KeyPair                                       *string   `json:"keyPair,omitempty"`
 	PomRepositoryReferencesCleanupPolicy          *string   `json:"pomRepositoryReferencesCleanupPolicy,omitempty"`
+	RepoLayoutRef                                 *string   `json:"repoLayoutRef,omitempty"`
 	Repositories                                  *[]string `json:"repositories,omitempty"`
 	VirtualRetrievalCachePeriodSecs               *int      `json:"virtualRetrievalCachePeriodSecs,omitempty"`
 }
