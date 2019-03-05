@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/client"
+	"github.com/atlassian/go-artifactory/v2/artifactory/client"
 	"net/http"
 )
 
-type SecurityService client.Service
+type SecurityService Service
 
 // read, write, annotate, delete, manage
 const (
@@ -48,34 +48,34 @@ func (r PermissionTargets) String() string {
 
 func (s *SecurityService) CreatePermissionTargets(ctx context.Context, permissionName string, permissionTargets *PermissionTargets) (*http.Response, error) {
 	path := fmt.Sprintf("/api/v2/security/permissions/%s", permissionName)
-	req, err := s.Client.NewJSONEncodedRequest(http.MethodPost, path, permissionTargets)
+	req, err := s.client.NewJSONEncodedRequest(http.MethodPost, path, permissionTargets)
 	if err != nil {
 		return nil, err
 	}
-	return s.Client.Do(ctx, req, nil)
+	return s.client.Do(ctx, req, nil)
 }
 
 func (s *SecurityService) GetPermissionTargets(ctx context.Context, permissionName string) (*PermissionTargets, *http.Response, error) {
 	path := fmt.Sprintf("/api/v2/security/permissions/%s", permissionName)
-	req, err := s.Client.NewRequest(http.MethodGet, path, nil)
+	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", client.MediaTypeJson)
 
 	permission := new(PermissionTargets)
-	resp, err := s.Client.Do(ctx, req, permission)
+	resp, err := s.client.Do(ctx, req, permission)
 	return permission, resp, err
 }
 
 func (s *SecurityService) HasPermissionTargets(ctx context.Context, permissionName string) (bool, error) {
 	path := fmt.Sprintf("/api/v2/security/permissions/%s", permissionName)
-	req, err := s.Client.NewRequest(http.MethodHead, path, nil)
+	req, err := s.client.NewRequest(http.MethodHead, path, nil)
 	if err != nil {
 		return false, err
 	}
 
-	resp, err := s.Client.Do(ctx, req, nil)
+	resp, err := s.client.Do(ctx, req, nil)
 
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return false, nil
@@ -93,21 +93,21 @@ func (s *SecurityService) HasPermissionTargets(ctx context.Context, permissionNa
 // the build values will be removed from the entity.
 func (s *SecurityService) UpdatePermissionTargets(ctx context.Context, permissionName string, permissionTargets *PermissionTargets) (*http.Response, error) {
 	path := fmt.Sprintf("/api/v2/security/permissions/%s", permissionName)
-	req, err := s.Client.NewJSONEncodedRequest(http.MethodPut, path, permissionTargets)
+	req, err := s.client.NewJSONEncodedRequest(http.MethodPut, path, permissionTargets)
 	if err != nil {
 		return nil, err
 	}
-	return s.Client.Do(ctx, req, nil)
+	return s.client.Do(ctx, req, nil)
 }
 
 func (s *SecurityService) DeletePermissionTargets(ctx context.Context, permissionName string) (*http.Response, error) {
 	path := fmt.Sprintf("/api/v2/security/permissions/%v", permissionName)
-	req, err := s.Client.NewRequest(http.MethodDelete, path, nil)
+	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.Client.Do(ctx, req, nil)
+	resp, err := s.client.Do(ctx, req, nil)
 	if err != nil {
 		return resp, err
 	}

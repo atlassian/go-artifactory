@@ -3,13 +3,20 @@ go-artifactory is a Go client library for accessing the [Artifactory API](https:
 
 [![Build Status](https://travis-ci.org/atlassian/go-artifactory.svg?branch=master)](https://travis-ci.org/atlassian/go-artifactory)
 
+## V2 Breaking Changes ##
+Due to the release of the new artifactory api this library has been significantly reworked. The import path has changed
+to github.com/atlassian/go-artifactory/pkg/artifactory to github.com/atlassian/go-artifactory/artifactory. 
+
+Services can now be accessed by including their API version i.e rt.V1.Security instead of rt.Security
+
+
 ## Requirements ##
 - Go version 1.9+
 - Dep is used for dependency management
 
 ## Usage ##
 ```go
-import "github.com/atlassian/go-artifactory/pkg/artifactory"
+import "github.com/atlassian/go-artifactory/artifactory"
 ```
 
 Construct a new Artifactory client, then use the various services on the client to
@@ -19,7 +26,7 @@ access different parts of the Artifactory API. For example:
 client := artifactory.NewClient(client, nil)
 
 // list all repositories
-repos, resp, err := client.Repositories.List(context.Background(), nil)
+repos, resp, err := client.V1.Repositories.List(context.Background(), nil)
 ```
 
 Some API methods have optional parameters that can be passed. For example:
@@ -29,7 +36,7 @@ client := artifactroy.NewClient(client, nil)
 
 // list all public local repositories
 opt := &artifactory.RepositoryListOptions{Type: "local"}
-client.Repositories.ListRepositories(ctx, opt)
+client.V1.Repositories.ListRepositories(ctx, opt)
 ```
 
 The services of a client divide the API into logical chunks and correspond to
@@ -69,7 +76,7 @@ func main() {
 		fmt.Println(err.Error())
 	}
 
-	repos, resp, err := client.Repositories.ListRepositories(context.Background(), nil)
+	repos, resp, err := client.V1.Repositories.ListRepositories(context.Background(), nil)
 }
 ```
 
@@ -88,7 +95,7 @@ bool, and int values. For example:
 		HandleSnapshots: artifactory.Bool(false);
 	}
 
-	client.Repositories.CreateLocal(context.Background(), &repo)
+	client.V1.Repositories.CreateLocal(context.Background(), &repo)
 ```
 
 Users who have worked with protocol buffers should find this pattern familiar.

@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/atlassian/go-artifactory/v2/pkg/artifactory"
-	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/transport"
+	"github.com/atlassian/go-artifactory/v2/artifactory"
+	"github.com/atlassian/go-artifactory/v2/artifactory/transport"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 		return
 	}
 
-	_, _, err = rt.System.Ping(context.Background())
+	_, _, err = rt.V1.System.Ping(context.Background())
 	if err != nil {
 		fmt.Printf("\nerror: %v\n", err)
 		return

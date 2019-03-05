@@ -1,5 +1,7 @@
 package v1
 
+import "github.com/atlassian/go-artifactory/v2/artifactory/client"
+
 const (
 	mediaTypeLocalRepository   = "application/vnd.org.jfrog.artifactory.repositories.LocalRepositoryConfiguration+json"
 	mediaTypeRemoteRepository  = "application/vnd.org.jfrog.artifactory.repositories.RemoteRepositoryConfiguration+json"
@@ -15,3 +17,17 @@ const (
 	mediaTypeItemPermissions   = "application/vnd.org.jfrog.artifactory.storage.ItemPermissions+json"
 	mediaTypeReplicationConfig = "application/vnd.org.jfrog.artifactory.replications.ReplicationConfigRequest+json"
 )
+
+type Service struct {
+	client *client.Client
+}
+
+type V1 struct {
+	common Service
+
+	// Services used for talking to different parts of the Artifactory API.
+	Repositories *RepositoriesService
+	Security     *SecurityService
+	System       *SystemService
+	Artifacts    *ArtifactService
+}

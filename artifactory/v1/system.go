@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/client"
+	"github.com/atlassian/go-artifactory/v2/artifactory/client"
 	"net/http"
 )
 
-type SystemService client.Service
+type SystemService Service
 
 // System Info
 // Get general system information.
@@ -16,14 +16,14 @@ type SystemService client.Service
 // Security: Requires a valid admin user
 func (s *SystemService) GetSystemInfo(ctx context.Context) (*string, *http.Response, error) {
 	path := "/api/system"
-	req, err := s.Client.NewRequest("GET", path, nil)
+	req, err := s.client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", client.MediaTypePlain)
 
 	buf := new(bytes.Buffer)
-	resp, err := s.Client.Do(ctx, req, buf)
+	resp, err := s.client.Do(ctx, req, buf)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -37,14 +37,14 @@ func (s *SystemService) GetSystemInfo(ctx context.Context) (*string, *http.Respo
 // 			 artifactory.system.properties, then no authentication is required even if anonymous access is disabled.
 func (s *SystemService) Ping(ctx context.Context) (*string, *http.Response, error) {
 	path := "/api/system/ping"
-	req, err := s.Client.NewRequest("GET", path, nil)
+	req, err := s.client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", client.MediaTypePlain)
 
 	buf := new(bytes.Buffer)
-	resp, err := s.Client.Do(ctx, req, buf)
+	resp, err := s.client.Do(ctx, req, buf)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -65,13 +65,13 @@ type VerifyConnectionOptions struct {
 func (s *SystemService) VerifyConnection(ctx context.Context, opt *VerifyConnectionOptions) (*string, *http.Response, error) {
 	url := "/api/system/verifyconnection"
 
-	req, err := s.Client.NewJSONEncodedRequest("POST", url, opt)
+	req, err := s.client.NewJSONEncodedRequest("POST", url, opt)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	buf := new(bytes.Buffer)
-	resp, err := s.Client.Do(ctx, req, buf)
+	resp, err := s.client.Do(ctx, req, buf)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -84,14 +84,14 @@ func (s *SystemService) VerifyConnection(ctx context.Context, opt *VerifyConnect
 // Security: Requires a valid admin user
 func (s *SystemService) GetConfiguration(ctx context.Context) (*string, *http.Response, error) {
 	path := "/api/system/configuration"
-	req, err := s.Client.NewRequest("GET", path, nil)
+	req, err := s.client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", client.MediaTypeXml)
 
 	buf := new(bytes.Buffer)
-	resp, err := s.Client.Do(ctx, req, buf)
+	resp, err := s.client.Do(ctx, req, buf)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -103,13 +103,13 @@ func (s *SystemService) GetConfiguration(ctx context.Context) (*string, *http.Re
 // Security: Requires a valid admin user
 func (s *SystemService) UpdateUrlBase(ctx context.Context, newUrl string) (*http.Response, error) {
 	path := "/api/system/configuration/baseUrl"
-	req, err := s.Client.NewJSONEncodedRequest("PUT", path, newUrl)
+	req, err := s.client.NewJSONEncodedRequest("PUT", path, newUrl)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-type", client.MediaTypePlain)
 
-	return s.Client.Do(ctx, req, nil)
+	return s.client.Do(ctx, req, nil)
 }
 
 type LicenseDetails struct {
@@ -128,14 +128,14 @@ func (r LicenseDetails) String() string {
 // Security: Requires a valid admin user
 func (s *SystemService) GetLicense(ctx context.Context) (*LicenseDetails, *http.Response, error) {
 	path := "/api/system/license"
-	req, err := s.Client.NewRequest("GET", path, nil)
+	req, err := s.client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", client.MediaTypeJson)
 
 	v := new(LicenseDetails)
-	resp, err := s.Client.Do(ctx, req, v)
+	resp, err := s.client.Do(ctx, req, v)
 	return v, resp, err
 }
 
@@ -148,14 +148,14 @@ type LicenseKey struct {
 // Security: Requires a valid admin user
 func (s *SystemService) InstallLicense(ctx context.Context, licenseKey *LicenseKey) (*client.Status, *http.Response, error) {
 	path := "/api/system/licenses"
-	req, err := s.Client.NewJSONEncodedRequest("POST", path, licenseKey)
+	req, err := s.client.NewJSONEncodedRequest("POST", path, licenseKey)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", client.MediaTypeJson)
 
 	v := new(client.Status)
-	resp, err := s.Client.Do(ctx, req, v)
+	resp, err := s.client.Do(ctx, req, v)
 	return v, resp, err
 }
 
@@ -183,14 +183,14 @@ func (r HALicenses) String() string {
 // Security: Requires a valid admin user
 func (s *SystemService) ListHALicenses(ctx context.Context) (*HALicenses, *http.Response, error) {
 	path := "/api/system/licenses"
-	req, err := s.Client.NewRequest("GET", path, nil)
+	req, err := s.client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", client.MediaTypeJson)
 
 	v := new(HALicenses)
-	resp, err := s.Client.Do(ctx, req, v)
+	resp, err := s.client.Do(ctx, req, v)
 	return v, resp, err
 }
 
@@ -199,14 +199,14 @@ func (s *SystemService) ListHALicenses(ctx context.Context) (*HALicenses, *http.
 // Security: Requires an admin user
 func (s *SystemService) InstallHALicenses(ctx context.Context, licenses []LicenseKey) (*client.Status, *http.Response, error) {
 	path := "/api/system/licenses"
-	req, err := s.Client.NewJSONEncodedRequest("POST", path, licenses)
+	req, err := s.client.NewJSONEncodedRequest("POST", path, licenses)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", client.MediaTypeJson)
 
 	v := new(client.Status)
-	resp, err := s.Client.Do(ctx, req, v)
+	resp, err := s.client.Do(ctx, req, v)
 	return v, resp, err
 }
 
@@ -222,14 +222,14 @@ func (s *SystemService) DeleteHALicenses(ctx context.Context, licenseHashes HALi
 	if err != nil {
 		return nil, nil, err
 	}
-	req, err := s.Client.NewRequest("DELETE", path, nil)
+	req, err := s.client.NewRequest("DELETE", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", client.MediaTypeJson)
 
 	v := new(client.Status)
-	resp, err := s.Client.Do(ctx, req, v)
+	resp, err := s.client.Do(ctx, req, v)
 	return v, resp, err
 }
 
@@ -249,14 +249,14 @@ func (r VersionAddOns) String() string {
 // Security: Requires a valid user (can be anonymous)
 func (s *SystemService) GetVersionAndAddons(ctx context.Context) (*VersionAddOns, *http.Response, error) {
 	path := "/api/system/version"
-	req, err := s.Client.NewRequest("GET", path, nil)
+	req, err := s.client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", mediaTypeSystemVersion)
 
 	v := new(VersionAddOns)
-	resp, err := s.Client.Do(ctx, req, v)
+	resp, err := s.client.Do(ctx, req, v)
 	return v, resp, err
 }
 
@@ -288,14 +288,14 @@ func (r ReverseProxyConfig) String() string {
 // Security: Requires a valid admin user
 func (s *SystemService) GetReverseProxyConfig(ctx context.Context) (*ReverseProxyConfig, *http.Response, error) {
 	path := "/api/system/configuration/webServer"
-	req, err := s.Client.NewRequest("GET", path, nil)
+	req, err := s.client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", client.MediaTypeJson)
 
 	v := new(ReverseProxyConfig)
-	resp, err := s.Client.Do(ctx, req, v)
+	resp, err := s.client.Do(ctx, req, v)
 	return v, resp, err
 }
 
@@ -304,12 +304,12 @@ func (s *SystemService) GetReverseProxyConfig(ctx context.Context) (*ReverseProx
 // Security: Requires an admin user
 func (s *SystemService) UpdateReverseProxyConfig(ctx context.Context, config *ReverseProxyConfig) (*http.Response, error) {
 	path := "/api/system/configuration/webServer"
-	req, err := s.Client.NewJSONEncodedRequest("POST", path, config)
+	req, err := s.client.NewJSONEncodedRequest("POST", path, config)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.Client.Do(ctx, req, nil)
+	return s.client.Do(ctx, req, nil)
 }
 
 // Gets the reverse proxy configuration snippet in text format
@@ -317,13 +317,13 @@ func (s *SystemService) UpdateReverseProxyConfig(ctx context.Context, config *Re
 // Security: Requires a valid user (not anonymous)
 func (s *SystemService) GetReverseProxySnippet(ctx context.Context) (*string, *http.Response, error) {
 	path := "/api/system/configuration/reverseProxy/nginx"
-	req, err := s.Client.NewRequest("GET", path, nil)
+	req, err := s.client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	req.Header.Set("Accept", client.MediaTypePlain)
 
 	v := new(bytes.Buffer)
-	resp, err := s.Client.Do(ctx, req, v)
+	resp, err := s.client.Do(ctx, req, v)
 	return String(v.String()), resp, err
 }

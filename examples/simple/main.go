@@ -4,9 +4,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/atlassian/go-artifactory/pkg/artifactory"
-	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/transport"
-	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/v1"
+	"github.com/atlassian/go-artifactory/v2/artifactory"
+	"github.com/atlassian/go-artifactory/v2/artifactory/transport"
+	"github.com/atlassian/go-artifactory/v2/artifactory/v1"
 	"os"
 )
 
@@ -25,7 +25,7 @@ func main() {
 	opts := v1.RepositoryListOptions{
 		Type: "local",
 	}
-	repos, _, err := client.Repositories.ListRepositories(context.Background(), &opts)
+	repos, _, err := client.V1.Repositories.ListRepositories(context.Background(), &opts)
 	if err != nil {
 		fmt.Printf("\nerror: %v\n", err)
 		return

@@ -3,14 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/atlassian/go-artifactory/v2/pkg/artifactory"
-	"github.com/atlassian/go-artifactory/v2/pkg/artifactory/transport"
+	"github.com/atlassian/go-artifactory/v2/artifactory"
+	"github.com/atlassian/go-artifactory/v2/artifactory/transport"
 	"os"
 )
 
 func main() {
-	tp := transport.TokenAuth{
-		Token: os.Getenv("ARTIFACTORY_TOKEN"),
+	tp := transport.ApiKeyAuth{
+		ApiKey: os.Getenv("ARTIFACTORY_API_KEY"),
 	}
 
 	client, err := artifactory.NewClient(os.Getenv("ARTIFACTORY_URL"), tp.Client())
@@ -19,7 +19,7 @@ func main() {
 		return
 	}
 
-	_, _, err = client.System.Ping(context.Background())
+	_, _, err = client.V1.System.Ping(context.Background())
 	if err != nil {
 		fmt.Printf("\nerror: %v\n", err)
 	} else {
