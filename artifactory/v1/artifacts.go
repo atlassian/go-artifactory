@@ -103,7 +103,7 @@ func (s *ArtifactService) UpdateRepositoryReplicationConfig(ctx context.Context,
 
 func (s *ArtifactService) DeleteRepositoryReplicationConfig(ctx context.Context, repoKey string) (*http.Response, error) {
 	path := fmt.Sprintf("/api/replications/%s", repoKey)
-	req, err := s.client.NewJSONEncodedRequest("DELETE", path, nil)
+	req, err := s.client.NewRequest("DELETE", path, nil)
 	if err != nil {
 		return nil, err
 	}

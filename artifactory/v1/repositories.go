@@ -389,7 +389,7 @@ func (s *RepositoriesService) update(ctx context.Context, repo string, v interfa
 
 func (s *RepositoriesService) delete(ctx context.Context, repo string) (*http.Response, error) {
 	path := fmt.Sprintf("/api/repositories/%v", repo)
-	req, err := s.client.NewJSONEncodedRequest("DELETE", path, nil)
+	req, err := s.client.NewRequest("DELETE", path, nil)
 	if err != nil {
 		return nil, err
 	}
