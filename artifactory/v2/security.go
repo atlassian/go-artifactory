@@ -35,18 +35,18 @@ const (
 	PERMISSION_SCHEMA = "application/vnd.org.jfrog.artifactory.security.PermissionTargetV2+json"
 )
 
-type PermissionTargets struct {
+type PermissionTarget struct {
 	Name  *string     `json:"name,omitempty"` // Optional element in create/replace queries
 	Repo  *Permission `json:"repo,omitempty"`
 	Build *Permission `json:"build,omitempty"`
 }
 
-func (r PermissionTargets) String() string {
+func (r PermissionTarget) String() string {
 	res, _ := json.MarshalIndent(r, "", "    ")
 	return string(res)
 }
 
-func (s *SecurityService) CreatePermissionTargets(ctx context.Context, permissionName string, permissionTargets *PermissionTargets) (*http.Response, error) {
+func (s *SecurityService) CreatePermissionTarget(ctx context.Context, permissionName string, permissionTargets *PermissionTarget) (*http.Response, error) {
 	path := fmt.Sprintf("/api/v2/security/permissions/%s", permissionName)
 	req, err := s.client.NewJSONEncodedRequest(http.MethodPost, path, permissionTargets)
 	if err != nil {
@@ -55,7 +55,7 @@ func (s *SecurityService) CreatePermissionTargets(ctx context.Context, permissio
 	return s.client.Do(ctx, req, nil)
 }
 
-func (s *SecurityService) GetPermissionTargets(ctx context.Context, permissionName string) (*PermissionTargets, *http.Response, error) {
+func (s *SecurityService) GetPermissionTarget(ctx context.Context, permissionName string) (*PermissionTarget, *http.Response, error) {
 	path := fmt.Sprintf("/api/v2/security/permissions/%s", permissionName)
 	req, err := s.client.NewRequest(http.MethodGet, path, nil)
 	if err != nil {
@@ -63,12 +63,12 @@ func (s *SecurityService) GetPermissionTargets(ctx context.Context, permissionNa
 	}
 	req.Header.Set("Accept", client.MediaTypeJson)
 
-	permission := new(PermissionTargets)
+	permission := new(PermissionTarget)
 	resp, err := s.client.Do(ctx, req, permission)
 	return permission, resp, err
 }
 
-func (s *SecurityService) HasPermissionTargets(ctx context.Context, permissionName string) (bool, error) {
+func (s *SecurityService) HasPermissionTarget(ctx context.Context, permissionName string) (bool, error) {
 	path := fmt.Sprintf("/api/v2/security/permissions/%s", permissionName)
 	req, err := s.client.NewRequest(http.MethodHead, path, nil)
 	if err != nil {
@@ -91,7 +91,7 @@ func (s *SecurityService) HasPermissionTargets(ctx context.Context, permissionNa
 // In case the request is missing one of the permission target entities (repo/build), the entity will be deleted.
 // This means that if an update request is sent to an entity that contains both repo and build, with only repo,
 // the build values will be removed from the entity.
-func (s *SecurityService) UpdatePermissionTargets(ctx context.Context, permissionName string, permissionTargets *PermissionTargets) (*http.Response, error) {
+func (s *SecurityService) UpdatePermissionTarget(ctx context.Context, permissionName string, permissionTargets *PermissionTarget) (*http.Response, error) {
 	path := fmt.Sprintf("/api/v2/security/permissions/%s", permissionName)
 	req, err := s.client.NewJSONEncodedRequest(http.MethodPut, path, permissionTargets)
 	if err != nil {
@@ -100,7 +100,7 @@ func (s *SecurityService) UpdatePermissionTargets(ctx context.Context, permissio
 	return s.client.Do(ctx, req, nil)
 }
 
-func (s *SecurityService) DeletePermissionTargets(ctx context.Context, permissionName string) (*http.Response, error) {
+func (s *SecurityService) DeletePermissionTarget(ctx context.Context, permissionName string) (*http.Response, error) {
 	path := fmt.Sprintf("/api/v2/security/permissions/%v", permissionName)
 	req, err := s.client.NewRequest(http.MethodDelete, path, nil)
 	if err != nil {

@@ -281,6 +281,7 @@ type VirtualRepository struct {
 	Notes                                         *string   `json:"notes,omitempty"`
 	IncludesPattern                               *string   `json:"includesPattern,omitempty"`
 	ExcludesPattern                               *string   `json:"excludesPattern,omitempty"`
+	RepoLayoutRef                                 *string   `json:"repoLayoutRef,omitempty"`
 	ArtifactoryRequestsCanRetrieveRemoteArtifacts *bool     `json:"artifactoryRequestsCanRetrieveRemoteArtifacts,omitempty"`
 	DebianTrivialLayout                           *bool     `json:"debianTrivialLayout,omitempty"`
 	DefaultDeploymentRepo                         *string   `json:"defaultDeploymentRepo,omitempty"`
