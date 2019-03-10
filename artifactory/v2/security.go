@@ -17,23 +17,21 @@ const (
 	PERM_ANNOTATE = "annotate"
 	PERM_DELETE   = "delete"
 	PERM_MANAGE   = "manage"
+
+	PERMISSION_SCHEMA = "application/vnd.org.jfrog.artifactory.security.PermissionTargetV2+json"
 )
 
 type Entity struct {
-	Users  *map[string][]string `json:"users,omitempty"`
-	Groups *map[string][]string `json:"groups,omitempty"`
+	Users  map[string][]string `json:"users,omitempty"`
+	Groups map[string][]string `json:"groups,omitempty"`
 }
 
 type Permission struct {
-	IncludePatterns *[]string `json:"include-patterns,omitempty"`
-	ExcludePatterns *[]string `json:"exclude-patterns,omitempty"`
-	Repositories    *[]string `json:"repositories,omitempty"`
-	Actions         *Entity   `json:"actions,omitempty"`
+	IncludePatterns []string `json:"include-patterns,omitempty"`
+	ExcludePatterns []string `json:"exclude-patterns,omitempty"`
+	Repositories    []string `json:"repositories,omitempty"`
+	Actions         *Entity  `json:"actions,omitempty"`
 }
-
-const (
-	PERMISSION_SCHEMA = "application/vnd.org.jfrog.artifactory.security.PermissionTargetV2+json"
-)
 
 type PermissionTarget struct {
 	Name  *string     `json:"name,omitempty"` // Optional element in create/replace queries
