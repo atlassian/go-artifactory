@@ -22,15 +22,15 @@ const (
 )
 
 type Entity struct {
-	Users  map[string][]string `json:"users,omitempty"`
-	Groups map[string][]string `json:"groups,omitempty"`
+	Users  *map[string][]string `json:"users,omitempty"`
+	Groups *map[string][]string `json:"groups,omitempty"`
 }
 
 type Permission struct {
-	IncludePatterns []string `json:"include-patterns,omitempty"`
-	ExcludePatterns []string `json:"exclude-patterns,omitempty"`
-	Repositories    []string `json:"repositories,omitempty"`
-	Actions         *Entity  `json:"actions,omitempty"`
+	IncludePatterns *[]string `json:"include-patterns,omitempty"`
+	ExcludePatterns *[]string `json:"exclude-patterns,omitempty"`
+	Repositories    *[]string `json:"repositories,omitempty"`
+	Actions         *Entity   `json:"actions,omitempty"`
 }
 
 type PermissionTarget struct {
