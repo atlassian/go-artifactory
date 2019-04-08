@@ -153,12 +153,6 @@ type ContentSynchronisation struct {
 	Source     *Source     `json:"source,omitempty"`
 }
 
-type Nuget struct {
-	FeedContextPath     *string `json:"feedContextPath,omitempty"`
-	DownloadContextPath *string `json:"downloadContextPath,omitempty"`
-	V3FeedUrl           *string `json:"v3FeedUrl,omitempty"`
-}
-
 type RemoteRepository struct {
 	Key                               *string                 `json:"key,omitempty"`
 	RClass                            *string                 `json:"rclass,omitempty"` // Mandatory element in create/replace queries (optional in "update" queries)
@@ -207,7 +201,6 @@ type RemoteRepository struct {
 	MaxUniqueTags                     *int                    `json:"maxUniqueTags,omitempty"`
 	MismatchingMimeTypesOverrideList  *string                 `json:"mismatchingMimeTypesOverrideList,omitempty"`
 	MissedRetrievalCachePeriodSecs    *int                    `json:"missedRetrievalCachePeriodSecs,omitempty"`
-	Nuget                             *Nuget                  `json:"nuget,omitempty"`
 	Offline                           *bool                   `json:"offline,omitempty"`
 	Password                          *string                 `json:"password,omitempty"`
 	PropagateQueryParams              *bool                   `json:"propagateQueryParams,omitempty"`
@@ -234,6 +227,9 @@ type RemoteRepository struct {
 	VcsGitDownloadUrl                 *string                 `json:"vcsGitDownloadUrl,omitempty"`
 	ClientTLSCertificate              *string                 `json:"clientTlsCertificate,omitempty"`
 	PyPiRegistryUrl                   *string                 `json:"pyPiRegistryUrl,omitempty"`
+	FeedContextPath                   *string                 `json:"feedContextPath,omitempty"`
+	DownloadContextPath               *string                 `json:"downloadContextPath,omitempty"`
+	V3FeedUrl                         *string                 `json:"v3FeedUrl,omitempty"`
 }
 
 func (r RemoteRepository) String() string {
