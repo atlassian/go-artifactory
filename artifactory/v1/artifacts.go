@@ -40,13 +40,26 @@ func (r ReplicationConfig) String() string {
 	return string(res)
 }
 
-// Add or replace replication configuration for given repository key. Supported by local and remote repositories. Accepts the JSON payload returned from Get Repository Replication Configuration for a single and an array of configurations. If the payload is an array of replication configurations, then values for cronExp and enableEventReplication in the first element in the array will determine the corresponding values when setting the repository replication configuration.
-// Notes: Requires Artifactory Pro
+// Creates or replaces a local multi-push replication configuration. Supported by local repositories.
+// Notes: Requires an enterprise license
 // Security: Requires a privileged user
 func (s *ArtifactService) SetRepositoryReplicationConfig(ctx context.Context, repoKey string, config *ReplicationConfig) (*http.Response, error) {
 	path := fmt.Sprintf("/api/replications/multiple/%s", repoKey)
 	req, err := s.client.NewJSONEncodedRequest("PUT", path, config)
 	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// Description: Add or replace replication configuration for given repository key. Supported by local and remote repositories. Accepts the JSON payload returned from Get Repository Replication Configuration for a single and an array of configurations. If the payload is an array of replication configurations, then values for cronExp and enableEventReplication in the first element in the array will determine the corresponding values when setting the repository replication configuration.
+// Notes: Requires Artifactory Pro
+// Security: Requires an admin user
+func (s *ArtifactService) SetSingleRepositoryReplicationConfig(ctx context.Context, repoKey string, config *SingleReplicationConfig) (*http.Response, error) {
+	path := fmt.Sprintf("/api/replications/%s", repoKey)
+	req, err := s.client.NewJSONEncodedRequest("PUT", path, config)
+	if err !=nil {
 		return nil, err
 	}
 
@@ -88,8 +101,8 @@ func (s *ArtifactService) GetRepositoryReplicationConfig(ctx context.Context, re
 	return replicationConfig, resp, nil
 }
 
-// Update existing replication configuration for given repository key, if found. Supported by local and remote repositories.
-// Notes: Requires Artifactory Pro
+// Updates a local multi-push replication configuration. Supported by local repositories.
+// Notes: Requires an enterprise license
 // Security: Requires a privileged user
 func (s *ArtifactService) UpdateRepositoryReplicationConfig(ctx context.Context, repoKey string, config *ReplicationConfig) (*http.Response, error) {
 	path := fmt.Sprintf("/api/replications/multiple/%s", repoKey)
@@ -101,6 +114,22 @@ func (s *ArtifactService) UpdateRepositoryReplicationConfig(ctx context.Context,
 	return s.client.Do(ctx, req, nil)
 }
 
+// Update existing replication configuration for given repository key, if found. Supported by local and remote repositories.
+// Notes: Requires Artifactory Pro
+// Security: Requires a privileged user
+func (s *ArtifactService) UpdateSingleRepositoryReplicationConfig(ctx context.Context, repoKey string, config *SingleReplicationConfig) (*http.Response, error) {
+	path := fmt.Sprintf("/api/replications/%s", repoKey)
+	req, err := s.client.NewJSONEncodedRequest("POST", path, config)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// Description: Delete existing replication configuration for given repository key. Supported by local and local-cached repositories.
+// Notes: Requires Artifactory Pro
+// Security: Requires an admin user
 func (s *ArtifactService) DeleteRepositoryReplicationConfig(ctx context.Context, repoKey string) (*http.Response, error) {
 	path := fmt.Sprintf("/api/replications/%s", repoKey)
 	req, err := s.client.NewRequest("DELETE", path, nil)
