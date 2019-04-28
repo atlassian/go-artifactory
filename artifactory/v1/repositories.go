@@ -207,7 +207,6 @@ type RemoteRepository struct {
 	MaxUniqueTags                     *int                    `json:"maxUniqueTags,omitempty"`
 	MismatchingMimeTypesOverrideList  *string                 `json:"mismatchingMimeTypesOverrideList,omitempty"`
 	MissedRetrievalCachePeriodSecs    *int                    `json:"missedRetrievalCachePeriodSecs,omitempty"`
-	Nuget                             *Nuget                  `json:"nuget,omitempty"`
 	Offline                           *bool                   `json:"offline,omitempty"`
 	Password                          *string                 `json:"password,omitempty"`
 	PropagateQueryParams              *bool                   `json:"propagateQueryParams,omitempty"`
@@ -234,6 +233,12 @@ type RemoteRepository struct {
 	VcsGitDownloadUrl                 *string                 `json:"vcsGitDownloadUrl,omitempty"`
 	ClientTLSCertificate              *string                 `json:"clientTlsCertificate,omitempty"`
 	PyPiRegistryUrl                   *string                 `json:"pyPiRegistryUrl,omitempty"`
+	// Deprecated since 6.9. Replaced with fields FeedContextPath, DownloadContextPath, V3FeedUrl below
+	Nuget *Nuget `json:"nuget,omitempty"`
+	// Replaces Nuget struct since 6.9. Mutually exclusive with Nuget field
+	FeedContextPath     *string `json:"feedContextPath,omitempty"`
+	DownloadContextPath *string `json:"downloadContextPath,omitempty"`
+	V3FeedUrl           *string `json:"v3FeedUrl,omitempty"`
 }
 
 func (r RemoteRepository) String() string {
