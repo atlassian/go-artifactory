@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/google/go-querystring/query"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"path"
 	"reflect"
 	"strings"
+
+	"github.com/google/go-querystring/query"
 )
 
 const (
@@ -91,7 +92,7 @@ func EncodeJson(v interface{}) (*bytes.Buffer, error) {
 }
 
 func EncodeURL(body interface{}) (*strings.Reader, error) {
-	if body != nil {
+	if body == nil {
 		return nil, nil
 	}
 
