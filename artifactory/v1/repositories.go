@@ -153,6 +153,12 @@ type ContentSynchronisation struct {
 	Source     *Source     `json:"source,omitempty"`
 }
 
+type Nuget struct {
+	FeedContextPath     *string `json:"feedContextPath,omitempty"`
+	DownloadContextPath *string `json:"downloadContextPath,omitempty"`
+	V3FeedUrl           *string `json:"v3FeedUrl,omitempty"`
+}
+
 type RemoteRepository struct {
 	Key                               *string                 `json:"key,omitempty"`
 	RClass                            *string                 `json:"rclass,omitempty"` // Mandatory element in create/replace queries (optional in "update" queries)
@@ -227,9 +233,12 @@ type RemoteRepository struct {
 	VcsGitDownloadUrl                 *string                 `json:"vcsGitDownloadUrl,omitempty"`
 	ClientTLSCertificate              *string                 `json:"clientTlsCertificate,omitempty"`
 	PyPiRegistryUrl                   *string                 `json:"pyPiRegistryUrl,omitempty"`
-	FeedContextPath                   *string                 `json:"feedContextPath,omitempty"`
-	DownloadContextPath               *string                 `json:"downloadContextPath,omitempty"`
-	V3FeedUrl                         *string                 `json:"v3FeedUrl,omitempty"`
+	// Deprecated since 6.9. Replaced with fields FeedContextPath, DownloadContextPath, V3FeedUrl below
+	Nuget *Nuget `json:"nuget,omitempty"`
+	// Replaces Nuget struct since 6.9. Mutually exclusive with Nuget field
+	FeedContextPath     *string `json:"feedContextPath,omitempty"`
+	DownloadContextPath *string `json:"downloadContextPath,omitempty"`
+	V3FeedUrl           *string `json:"v3FeedUrl,omitempty"`
 }
 
 func (r RemoteRepository) String() string {
