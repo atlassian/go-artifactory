@@ -11,8 +11,8 @@ Services can now be accessed by including their API version i.e rt.V1.Security i
 
 
 ## Requirements ##
-- Go version 1.9+
-- Dep is used for dependency management
+- Go version 1.11+
+- Go mod is used for dependency management
 
 ## Usage ##
 ```go
