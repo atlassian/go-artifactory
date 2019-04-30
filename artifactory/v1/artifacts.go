@@ -112,7 +112,7 @@ func (s *ArtifactService) getReplicationConfigs(ctx context.Context, repoKey str
 		return nil, resp, err
 	}
 
-	// A copy is required to cast correctly later on.
+	// A copy is required as the initial write to the httpBody buffer contains EOF issues.
 	var httpBodyCopy bytes.Buffer
 	_, err = io.Copy(&httpBodyCopy, &httpBody)
 	if err != nil {
@@ -120,10 +120,8 @@ func (s *ArtifactService) getReplicationConfigs(ctx context.Context, repoKey str
 	}
 
 	var repConfigAsInterface interface{}
-	err = json.NewDecoder(&httpBody).Decode(repConfigAsInterface)
-	if err == io.EOF {
-		err = nil
-	} else {
+	err = json.Unmarshal(httpBodyCopy.Bytes(), &repConfigAsInterface)
+	if err != nil {
 		return nil, resp, err
 	}
 
@@ -131,7 +129,7 @@ func (s *ArtifactService) getReplicationConfigs(ctx context.Context, repoKey str
 	replications := make([]SingleReplicationConfig, 0)
 	switch repConfigAsInterface.(type) {
 	case []interface{}:
-		err = json.NewDecoder(&httpBodyCopy).Decode(replications)
+		err = json.NewDecoder(&httpBodyCopy).Decode(&replications)
 		if err != nil {
 			return nil, resp, err
 		}
