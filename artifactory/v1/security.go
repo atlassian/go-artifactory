@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/atlassian/go-artifactory/v2/artifactory/client"
+	"io"
 	"net/http"
-	"os"
 	"strings"
+
+	"github.com/atlassian/go-artifactory/v2/artifactory/client"
 )
 
 type SecurityService Service
@@ -1035,7 +1036,7 @@ func (s *SecurityService) GetCertificates(ctx context.Context) (*[]CertificateDe
 // Adds an SSL certificate.
 // Since:5.4.0
 // Security: Requires an admin user
-func (s *SecurityService) AddCertificate(ctx context.Context, alias string, pem *os.File) (*client.Status, *http.Response, error) {
+func (s *SecurityService) AddCertificate(ctx context.Context, alias string, pem io.Reader) (*client.Status, *http.Response, error) {
 	path := fmt.Sprintf("/api/system/security/certificates/%s", alias)
 	req, err := s.client.NewRequest("POST", path, pem)
 	if err != nil {
