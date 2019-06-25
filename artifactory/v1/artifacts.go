@@ -1,9 +1,11 @@
 package v1
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -59,7 +61,7 @@ func (s *ArtifactService) SetRepositoryReplicationConfig(ctx context.Context, re
 func (s *ArtifactService) SetSingleRepositoryReplicationConfig(ctx context.Context, repoKey string, config *SingleReplicationConfig) (*http.Response, error) {
 	path := fmt.Sprintf("/api/replications/%s", repoKey)
 	req, err := s.client.NewJSONEncodedRequest("PUT", path, config)
-	if err !=nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -70,16 +72,7 @@ func (s *ArtifactService) SetSingleRepositoryReplicationConfig(ctx context.Conte
 // Notes: Requires Artifactory Pro
 // Security: Requires a privileged user
 func (s *ArtifactService) GetRepositoryReplicationConfig(ctx context.Context, repoKey string) (*ReplicationConfig, *http.Response, error) {
-	path := fmt.Sprintf("/api/replications/%s", repoKey)
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", mediaTypeReplicationConfig)
-
-	replications := make([]SingleReplicationConfig, 0)
-	resp, err := s.client.Do(ctx, req, &replications)
-
+	replications, resp, err := s.getReplicationConfigs(ctx, repoKey)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -99,6 +92,58 @@ func (s *ArtifactService) GetRepositoryReplicationConfig(ctx context.Context, re
 	}
 
 	return replicationConfig, resp, nil
+}
+
+// Gets the replication configs for a given repository key.
+// Note: As the get endpoint can return a single object or an array (if there is more than one replication), extra work
+// is required to marshall the response into an expected, consistent format.
+func (s *ArtifactService) getReplicationConfigs(ctx context.Context, repoKey string) ([]SingleReplicationConfig, *http.Response, error) {
+	path := fmt.Sprintf("/api/replications/%s", repoKey)
+	req, err := s.client.NewRequest("GET", path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	req.Header.Set("Accept", mediaTypeReplicationConfig)
+
+	// By writing the response to a buffer, we can evaluate the type and decode appropriately.
+	var httpBody bytes.Buffer
+	resp, err := s.client.Do(ctx, req, &httpBody)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	// A copy is required as the initial write to the httpBody buffer contains EOF issues.
+	var httpBodyCopy bytes.Buffer
+	_, err = io.Copy(&httpBodyCopy, &httpBody)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	var repConfigAsInterface interface{}
+	err = json.Unmarshal(httpBodyCopy.Bytes(), &repConfigAsInterface)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	// Checks to see what type of response is returned, and then casts to that.
+	replications := make([]SingleReplicationConfig, 0)
+	switch repConfigAsInterface.(type) {
+	case []interface{}:
+		err = json.NewDecoder(&httpBodyCopy).Decode(&replications)
+		if err != nil {
+			return nil, resp, err
+		}
+	default:
+		singleReplication := new(SingleReplicationConfig)
+		err = json.NewDecoder(&httpBodyCopy).Decode(singleReplication)
+		if err != nil {
+			return nil, resp, err
+		}
+
+		replications = append(replications, *singleReplication)
+	}
+
+	return replications, resp, nil
 }
 
 // Updates a local multi-push replication configuration. Supported by local repositories.
