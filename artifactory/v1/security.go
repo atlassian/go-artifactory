@@ -210,7 +210,7 @@ func (s *SecurityService) UnexpireUserPassword(ctx context.Context, username str
 }
 
 type PasswordChangeOptions struct {
-	Username     *string `json:"username,omitempty"`
+	Username     *string `json:"userName,omitempty"`
 	OldPassword  *string `json:"oldPassword,omitempty"`
 	NewPassword1 *string `json:"newPassword1,omitempty"`
 	NewPassword2 *string `json:"newPassword2,omitempty"`
