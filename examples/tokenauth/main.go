@@ -3,26 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/atlassian/go-artifactory/v2/artifactory"
-	"github.com/atlassian/go-artifactory/v2/artifactory/transport"
-	"os"
+
+	"github.com/atlassian/go-artifactory/v3/artifactory"
+	"github.com/atlassian/go-artifactory/v3/artifactory/transport"
 )
 
 func main() {
-	tp := transport.ApiKeyAuth{
-		ApiKey: os.Getenv("ARTIFACTORY_API_KEY"),
-	}
+	rt := artifactory.NewClient("http://localhost:8080/artifactory", transport.ApiKeyAuth("AKCabc123"))
 
-	client, err := artifactory.NewClient(os.Getenv("ARTIFACTORY_URL"), tp.Client())
+	resp, err := rt.V1.System.Ping(context.Background())
 	if err != nil {
 		fmt.Printf("\nerror: %v\n", err)
 		return
-	}
-
-	_, _, err = client.V1.System.Ping(context.Background())
-	if err != nil {
-		fmt.Printf("\nerror: %v\n", err)
 	} else {
-		fmt.Println("OK")
+		fmt.Println(resp.String())
 	}
 }

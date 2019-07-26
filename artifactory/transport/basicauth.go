@@ -6,28 +6,24 @@ import (
 	"net/http"
 )
 
-// BasicAuth allows the construction of a HTTP Client that authenticates with basic auth
+// basicAuth allows the construction of a HTTP Client that authenticates with basic auth
 // It also adds the correct headers to the request
-type BasicAuth struct {
-	Username  string
-	Password  string
-	Transport http.RoundTripper
+type basicAuth struct {
+	username string
+	password string
+	tp       http.RoundTripper
 }
 
-// Client returns a HTTP Client and injects the basic auth transport
-func (t *BasicAuth) Client() *http.Client {
-	return &http.Client{Transport: t}
-}
-
-func (t *BasicAuth) transport() http.RoundTripper {
-	if t.Transport != nil {
-		return t.Transport
+func BasicAuth(username string, password string) http.RoundTripper {
+	return &basicAuth{
+		username: username,
+		password: password,
+		tp:       http.DefaultTransport,
 	}
-	return http.DefaultTransport
 }
 
 // RoundTrip allows us to add headers to every request
-func (t *BasicAuth) RoundTrip(req *http.Request) (*http.Response, error) {
+func (t *basicAuth) RoundTrip(req *http.Request) (*http.Response, error) {
 	// To set extra headers, we must make a copy of the Request so
 	// that we don't modify the Request we were given. This is required by the
 	// specification of service.RoundTripper.
@@ -37,7 +33,7 @@ func (t *BasicAuth) RoundTrip(req *http.Request) (*http.Response, error) {
 	req2 := new(http.Request)
 	deepCopyRequest(req, req2)
 
-	req2.SetBasicAuth(t.Username, t.Password)
+	req2.SetBasicAuth(t.username, t.password)
 	req2.Header.Add(HeaderResultDetail, "info, properties")
 
 	if req.Body != nil {
@@ -47,5 +43,5 @@ func (t *BasicAuth) RoundTrip(req *http.Request) (*http.Response, error) {
 		req.Header.Add(HeaderChecksumSha1, fmt.Sprintf("%x", chkSum))
 	}
 
-	return t.transport().RoundTrip(req2)
+	return t.tp.RoundTrip(req2)
 }

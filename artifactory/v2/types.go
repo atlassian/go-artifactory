@@ -1,11 +1,11 @@
 package v2
 
 import (
-	"github.com/atlassian/go-artifactory/v2/artifactory/client"
+	"github.com/go-resty/resty/v2"
 )
 
 type Service struct {
-	client *client.Client
+	client *resty.Client
 }
 
 type V2 struct {

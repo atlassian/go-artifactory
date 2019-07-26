@@ -1,14 +1,14 @@
 package v1
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/atlassian/go-artifactory/v2/artifactory/client"
-	"net/http"
-	"os"
 	"strings"
+
+	"github.com/google/go-querystring/query"
+
+	"github.com/go-resty/resty/v2"
 )
 
 type SecurityService Service
@@ -28,17 +28,13 @@ func (r UserDetails) String() string {
 // Since: 2.4.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) ListUsers(ctx context.Context) (*[]UserDetails, *http.Response, error) {
-	path := "/api/security/users"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", mediaTypeUsers)
-
-	users := new([]UserDetails)
-	resp, err := s.client.Do(ctx, req, users)
-	return users, resp, err
+func (s *SecurityService) ListUsers(ctx context.Context) (*[]UserDetails, *resty.Response, error) {
+	v := make([]UserDetails, 0)
+	resp, err := s.client.R().
+		SetContext(ctx).
+		SetResult(&v).
+		Get("/api/security/users")
+	return &v, resp, err
 }
 
 // application/vnd.org.jfrog.artifactory.security.User+json
@@ -64,33 +60,22 @@ func (r User) String() string {
 // Since: 2.4.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) GetUser(ctx context.Context, username string) (*User, *http.Response, error) {
-	path := fmt.Sprintf("/api/security/users/%s", username)
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", mediaTypeUser)
-
-	user := new(User)
-	resp, err := s.client.Do(ctx, req, user)
-	return user, resp, err
+func (s *SecurityService) GetUser(ctx context.Context, username string) (*User, *resty.Response, error) {
+	v := new(User)
+	resp, err := s.client.R().
+		SetContext(ctx).
+		SetResult(v).
+		Get(fmt.Sprintf("/api/security/users/%s", username))
+	return v, resp, err
 }
 
 // Get the encrypted password of the authenticated requestor
 // Since: 3.3.0
 // Security: Requires a privileged user
-func (s *SecurityService) GetEncryptedPassword(ctx context.Context) (*string, *http.Response, error) {
-	path := "/api/security/encryptedPassword"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	return String(buf.String()), resp, err
+func (s *SecurityService) GetEncryptedPassword(ctx context.Context) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Get(fmt.Sprintf("/api/security/encryptedPassword"))
 }
 
 // Creates a new user in Artifactory or replaces an existing user
@@ -98,13 +83,11 @@ func (s *SecurityService) GetEncryptedPassword(ctx context.Context) (*string, *h
 // Notes: Requires Artifactory Pro
 // Missing values will be set to the default values as defined by the consumed type.
 // Security: Requires an admin user
-func (s *SecurityService) CreateOrReplaceUser(ctx context.Context, username string, user *User) (*http.Response, error) {
-	path := fmt.Sprintf("/api/security/users/%s", username)
-	req, err := s.client.NewJSONEncodedRequest("PUT", path, user)
-	if err != nil {
-		return nil, err
-	}
-	return s.client.Do(ctx, req, nil)
+func (s *SecurityService) CreateOrReplaceUser(ctx context.Context, username string, user *User) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(user).
+		Put(fmt.Sprintf("/api/security/users/%s", username))
 }
 
 // Updates an exiting user in Artifactory with the provided user details.
@@ -112,100 +95,62 @@ func (s *SecurityService) CreateOrReplaceUser(ctx context.Context, username stri
 // Notes: Requires Artifactory Pro
 // Missing values will be set to the default values as defined by the consumed type
 // Security: Requires an admin user
-func (s *SecurityService) UpdateUser(ctx context.Context, username string, user *User) (*http.Response, error) {
-	path := fmt.Sprintf("/api/security/users/%s", username)
-	req, err := s.client.NewJSONEncodedRequest("POST", path, user)
-	if err != nil {
-		return nil, err
-	}
-	return s.client.Do(ctx, req, nil)
+func (s *SecurityService) UpdateUser(ctx context.Context, username string, user *User) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(user).
+		Post(fmt.Sprintf("/api/security/users/%s", username))
 }
 
 // Removes an Artifactory user.
 // Since: 2.4.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) DeleteUser(ctx context.Context, username string) (*string, *http.Response, error) {
-	path := fmt.Sprintf("/api/security/users/%v", username)
-	req, err := s.client.NewRequest("DELETE", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) DeleteUser(ctx context.Context, username string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Delete(fmt.Sprintf("/api/security/users/%s", username))
 }
 
 // Expires a user's password
 // Since: 4.4.2
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) ExpireUserPassword(ctx context.Context, username string) (*string, *http.Response, error) {
-	path := fmt.Sprintf("/api/security/users/authorization/expirePassword/%s", username)
-	req, err := s.client.NewRequest("POST", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) ExpireUserPassword(ctx context.Context, username string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Post(fmt.Sprintf("/api/security/users/authorization/expirePassword/%s", username))
 }
 
 // Expires password for a list of users
 // Since: 4.4.2
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) ExpireMultipleUsersPassword(ctx context.Context, usernames []string) (*http.Response, error) {
-	path := "/api/security/users/authorization/expirePasswords"
-	req, err := s.client.NewJSONEncodedRequest("POST", path, usernames)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(ctx, req, nil)
+func (s *SecurityService) ExpireMultipleUsersPassword(ctx context.Context, usernames []string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(usernames).
+		Post("/api/security/users/authorization/expirePasswords")
 }
 
 // Expires password for all users
 // Since: 4.4.2
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) ExpireAllUsersPassword(ctx context.Context) (*http.Response, error) {
-	path := "/api/security/users/authorization/expirePasswordForAllUsers"
-	req, err := s.client.NewRequest("POST", path, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(ctx, req, nil)
+func (s *SecurityService) ExpireAllUsersPassword(ctx context.Context) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Post("/api/security/users/authorization/expirePasswordForAllUsers")
 }
 
 // Unexpires a user's password
 // Since: 4.4.2
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) UnexpireUserPassword(ctx context.Context, username string) (*string, *http.Response, error) {
-	path := fmt.Sprintf("/api/security/users/authorization/unexpirePassword/%s", username)
-	req, err := s.client.NewRequest("POST", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) UnexpireUserPassword(ctx context.Context, username string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Post(fmt.Sprintf("/api/security/users/authorization/unexpirePassword/%s", username))
 }
 
 type PasswordChangeOptions struct {
@@ -215,24 +160,20 @@ type PasswordChangeOptions struct {
 	NewPassword2 *string `json:"newPassword2,omitempty"`
 }
 
+func (r PasswordChangeOptions) String() string {
+	res, _ := json.MarshalIndent(r, "", "    ")
+	return string(res)
+}
+
 // Changes a user's password
 // Since: 4.4.2
 // Notes: Requires Artifactory Pro
 // Security: Admin can apply this method to all users, and each (non-anonymous) user can use this method to change his own password.
-func (s *SecurityService) ChangePassword(ctx context.Context, opts *PasswordChangeOptions) (*string, *http.Response, error) {
-	path := "/api/security/users/authorization/changePassword"
-	req, err := s.client.NewJSONEncodedRequest("POST", path, opts)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) ChangePassword(ctx context.Context, opts *PasswordChangeOptions) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(opts).
+		Post("/api/security/users/authorization/changePassword")
 }
 
 type PasswordExpirationPolicy struct {
@@ -241,38 +182,33 @@ type PasswordExpirationPolicy struct {
 	NotifyByEmail  *bool `json:"notifyByEmail,omitempty"`
 }
 
+func (r PasswordExpirationPolicy) String() string {
+	res, _ := json.MarshalIndent(r, "", "    ")
+	return string(res)
+}
+
 // Retrieves the password expiration policy
 // Since: 4.4.2
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) GetPasswordExpirationPolicy(ctx context.Context) (*PasswordExpirationPolicy, *http.Response, error) {
-	path := "/api/security/configuration/passwordExpirationPolicy"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
-	v := new(PasswordExpirationPolicy)
-	resp, err := s.client.Do(ctx, req, v)
-	return v, resp, err
+func (s *SecurityService) GetPasswordExpirationPolicy(ctx context.Context) (*PasswordExpirationPolicy, *resty.Response, error) {
+	policy := new(PasswordExpirationPolicy)
+	res, err := s.client.R().
+		SetContext(ctx).
+		SetResult(policy).
+		Get("/api/security/configuration/passwordExpirationPolicy")
+	return policy, res, err
 }
 
 // Sets the password expiration policy
 // Since: 4.4.2
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) SetPasswordExpirationPolicy(ctx context.Context, policy *PasswordExpirationPolicy) (*PasswordExpirationPolicy, *http.Response, error) {
-	path := "/api/security/configuration/passwordExpirationPolicy"
-	req, err := s.client.NewJSONEncodedRequest("PUT", path, policy)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
-	v := new(PasswordExpirationPolicy)
-	resp, err := s.client.Do(ctx, req, v)
-	return v, resp, err
+func (s *SecurityService) SetPasswordExpirationPolicy(ctx context.Context, policy *PasswordExpirationPolicy) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(policy).
+		Put("/api/security/configuration/passwordExpirationPolicy")
 }
 
 type UserLockPolicy struct {
@@ -280,113 +216,71 @@ type UserLockPolicy struct {
 	LoginAttempts *int  `json:"loginAttempts,omitempty"`
 }
 
+func (r UserLockPolicy) String() string {
+	res, _ := json.MarshalIndent(r, "", "    ")
+	return string(res)
+}
+
 // Retrieves the currently configured user lock policy.
 // Since: 4.4
 // Security: Requires a valid admin user
-func (s *SecurityService) GetUserLockPolicy(ctx context.Context) (*UserLockPolicy, *http.Response, error) {
-	path := "/api/security/userLockPolicy"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req.Header.Set("Accept", client.MediaTypeJson)
-
-	v := new(UserLockPolicy)
-	resp, err := s.client.Do(ctx, req, v)
-	return v, resp, err
+func (s *SecurityService) GetUserLockPolicy(ctx context.Context) (*UserLockPolicy, *resty.Response, error) {
+	policy := new(UserLockPolicy)
+	res, err := s.client.R().
+		SetContext(ctx).
+		SetResult(policy).
+		Get("/api/security/userLockPolicy")
+	return policy, res, err
 }
 
 // Configures the user lock policy that locks users out of their account if the number of repeated incorrect login attempts exceeds the configured maximum allowed.
 // Since: 4.4
 // Security: Requires a valid admin user
-func (s *SecurityService) SetUserLockPolicy(ctx context.Context, policy *PasswordExpirationPolicy) (*string, *http.Response, error) {
-	path := "/api/security/userLockPolicy"
-	req, err := s.client.NewJSONEncodedRequest("PUT", path, policy)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) SetUserLockPolicy(ctx context.Context, policy *PasswordExpirationPolicy) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(policy).
+		Put("/api/security/userLockPolicy")
 }
 
 // If locking out users is enabled, lists all users that were locked out due to recurrent incorrect login attempts.
 // Since: 4.4
 // Security: Requires a valid admin user
-func (s *SecurityService) GetLockedOutUsers(ctx context.Context) ([]string, *http.Response, error) {
-	path := "/api/security/lockedUsers"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
-	var v []string
-	resp, err := s.client.Do(ctx, req, v)
-	return v, resp, err
+func (s *SecurityService) GetLockedOutUsers(ctx context.Context) (*[]string, *resty.Response, error) {
+	v := make([]string, 0)
+	res, err := s.client.R().
+		SetContext(ctx).
+		SetResult(&v).
+		Get("/api/security/lockedUsers")
+	return &v, res, err
 }
 
 // Unlocks a single user that was locked out due to recurrent incorrect login attempts.
 // Since: 4.4
 // Security:  Requires a valid admin user
-func (s *SecurityService) UnlockUser(ctx context.Context, username string) (*string, *http.Response, error) {
-	path := fmt.Sprintf("/api/security/unlockUsers/%s", username)
-	req, err := s.client.NewRequest("POST", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) UnlockUser(ctx context.Context, username string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Post(fmt.Sprintf("/api/security/unlockUsers/%s", username))
 }
 
 // Unlocks a list of users that were locked out due to recurrent incorrect login attempts.
 // Since: 4.4
 // Security:  Requires a valid admin user
-func (s *SecurityService) UnlockMultipleUsers(ctx context.Context, usernames []string) (*string, *http.Response, error) {
-	path := "/api/security/unlockUsers"
-	req, err := s.client.NewJSONEncodedRequest("POST", path, usernames)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) UnlockMultipleUsers(ctx context.Context, usernames []string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(usernames).
+		Post("/api/security/unlockUsers")
 }
 
 // Unlocks all users that were locked out due to recurrent incorrect login attempts.
 // Since: 4.4
 // Security:  Requires a valid admin user
-func (s *SecurityService) UnlockedAllUsers(ctx context.Context) (*string, *http.Response, error) {
-	path := "/api/security/unlockAllUsers"
-	req, err := s.client.NewRequest("POST", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) UnlockedAllUsers(ctx context.Context) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Post("/api/security/unlockAllUsers")
 }
 
 type ApiKey struct {
@@ -395,100 +289,62 @@ type ApiKey struct {
 
 // Create an API key for the current user. Returns an error if API key already exists - use regenerate API key instead.
 // Since: 4.3.0
-func (s *SecurityService) CreateApiKey(ctx context.Context) (*ApiKey, *http.Response, error) {
-	path := "/api/security/apiKey"
-	req, err := s.client.NewRequest("POST", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
+func (s *SecurityService) CreateApiKey(ctx context.Context) (*ApiKey, *resty.Response, error) {
 	v := new(ApiKey)
-	resp, err := s.client.Do(ctx, req, v)
-	return v, resp, err
+	res, err := s.client.R().
+		SetContext(ctx).
+		SetResult(v).
+		Post("/api/security/apiKey")
+	return v, res, err
 }
 
 // Regenerate an API key for the current user
 // Since: 4.3.0
-func (s *SecurityService) RegenerateApiKey(ctx context.Context) (*ApiKey, *http.Response, error) {
-	path := "/api/security/apiKey"
-	req, err := s.client.NewRequest("PUT", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
+func (s *SecurityService) RegenerateApiKey(ctx context.Context) (*ApiKey, *resty.Response, error) {
 	v := new(ApiKey)
-	resp, err := s.client.Do(ctx, req, v)
-	return v, resp, err
+	res, err := s.client.R().
+		SetContext(ctx).
+		SetResult(v).
+		Put("/api/security/apiKey")
+	return v, res, err
 }
 
 // Get the current user's own API key
 // Since: 4.3.0
-func (s *SecurityService) GetApiKey(ctx context.Context) (*ApiKey, *http.Response, error) {
-	path := "/api/security/apiKey"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
+func (s *SecurityService) GetApiKey(ctx context.Context) (*ApiKey, *resty.Response, error) {
 	v := new(ApiKey)
-	resp, err := s.client.Do(ctx, req, v)
-	return v, resp, err
+	res, err := s.client.R().
+		SetContext(ctx).
+		SetResult(v).
+		Get("/api/security/apiKey")
+	return v, res, err
 }
 
 // Revokes the current user's API key
 // Since: 4.3.0
-func (s *SecurityService) RevokeApiKey(ctx context.Context) (*map[string]interface{}, *http.Response, error) {
-	path := "/api/security/apiKey"
-	req, err := s.client.NewRequest("DELETE", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
-	v := new(map[string]interface{})
-	resp, err := s.client.Do(ctx, req, v)
-	return v, resp, err
+func (s *SecurityService) RevokeApiKey(ctx context.Context) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Delete("/api/security/apiKey")
 }
 
 // Revokes the API key of another user
 // Since: 4.3.0
 // Security: Requires a privileged user (Admin only)
-func (s *SecurityService) RevokeUserApiKey(ctx context.Context, username string) (*map[string]interface{}, *http.Response, error) {
-	path := fmt.Sprintf("/api/security/apiKey/%s", username)
-	req, err := s.client.NewRequest("DELETE", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
-	v := new(map[string]interface{})
-	resp, err := s.client.Do(ctx, req, v)
-	return v, resp, err
+func (s *SecurityService) RevokeUserApiKey(ctx context.Context, username string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Delete(fmt.Sprintf("/api/security/apiKey/%s", username))
 }
 
 // Revokes all API keys currently defined in the system
 // Since: 4.3.0
 // Security: Requires a privileged user (Admin only)
-func (s *SecurityService) RevokeAllApiKeys(ctx context.Context) (*map[string]interface{}, *http.Response, error) {
-	opt := struct {
-		DeleteAll int `json:"deleteAll"`
-	}{1}
-	path, err := client.AddOptions("/api/security/apiKey", opt)
-	if err != nil {
-		return nil, nil, err
-	}
-	req, err := s.client.NewRequest("DELETE", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
-	v := new(map[string]interface{})
-	resp, err := s.client.Do(ctx, req, v)
-	return v, resp, err
+func (s *SecurityService) RevokeAllApiKeys(ctx context.Context) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetQueryParam("deleteAll", "1").
+		Delete("/api/security/apiKey")
 }
 
 // application/vnd.org.jfrog.artifactory.security.Groups+json
@@ -506,17 +362,13 @@ func (r GroupDetails) String() string {
 // Since: 2.4.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) ListGroups(ctx context.Context) (*[]GroupDetails, *http.Response, error) {
-	path := "/api/security/groups"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", mediaTypeGroups)
-
-	groups := new([]GroupDetails)
-	resp, err := s.client.Do(ctx, req, groups)
-	return groups, resp, err
+func (s *SecurityService) ListGroups(ctx context.Context) (*[]GroupDetails, *resty.Response, error) {
+	v := make([]GroupDetails, 0)
+	resp, err := s.client.R().
+		SetContext(ctx).
+		SetResult(&v).
+		Get("/api/security/groups")
+	return &v, resp, err
 }
 
 // application/vnd.org.jfrog.artifactory.security.Group+json
@@ -538,17 +390,13 @@ func (r Group) String() string {
 // Since: 2.4.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) GetGroup(ctx context.Context, groupName string) (*Group, *http.Response, error) {
-	path := fmt.Sprintf("/api/security/groups/%s", groupName)
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", mediaTypeGroup)
-
-	group := new(Group)
-	resp, err := s.client.Do(ctx, req, group)
-	return group, resp, err
+func (s *SecurityService) GetGroup(ctx context.Context, groupName string) (*Group, *resty.Response, error) {
+	v := new(Group)
+	resp, err := s.client.R().
+		SetContext(ctx).
+		SetResult(v).
+		Get(fmt.Sprintf("/api/security/groups/%s", groupName))
+	return v, resp, err
 }
 
 // Creates a new group in Artifactory or replaces an existing group
@@ -556,45 +404,32 @@ func (s *SecurityService) GetGroup(ctx context.Context, groupName string) (*Grou
 // Notes: Requires Artifactory Pro
 // Missing values will be set to the default values as defined by the consumed type.
 // Security: Requires an admin user
-func (s *SecurityService) CreateOrReplaceGroup(ctx context.Context, groupName string, group *Group) (*http.Response, error) {
-	url := fmt.Sprintf("/api/security/groups/%s", groupName)
-	req, err := s.client.NewJSONEncodedRequest("PUT", url, group)
-	if err != nil {
-		return nil, err
-	}
-	return s.client.Do(ctx, req, nil)
+func (s *SecurityService) CreateOrReplaceGroup(ctx context.Context, groupName string, group *Group) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(group).
+		Put(fmt.Sprintf("/api/security/groups/%s", groupName))
 }
 
 // Updates an exiting group in Artifactory with the provided group details.
 // Since: 2.4.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) UpdateGroup(ctx context.Context, groupName string, group *Group) (*http.Response, error) {
-	path := fmt.Sprintf("/api/security/groups/%s", groupName)
-	req, err := s.client.NewJSONEncodedRequest("POST", path, group)
-	if err != nil {
-		return nil, err
-	}
-	return s.client.Do(ctx, req, nil)
+func (s *SecurityService) UpdateGroup(ctx context.Context, groupName string, group *Group) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(group).
+		Post(fmt.Sprintf("/api/security/groups/%s", groupName))
 }
 
 // Removes an Artifactory group.
 // Since: 2.4.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) DeleteGroup(ctx context.Context, groupName string) (*string, *http.Response, error) {
-	path := fmt.Sprintf("/api/security/groups/%v", groupName)
-	req, err := s.client.NewRequest("DELETE", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) DeleteGroup(ctx context.Context, groupName string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Delete(fmt.Sprintf("/api/security/groups/%s", groupName))
 }
 
 // application/vnd.org.jfrog.artifactory.security.PermissionTargets+json
@@ -612,17 +447,13 @@ func (r PermissionTargetsDetails) String() string {
 // Since: 2.4.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) ListPermissionTargets(ctx context.Context) ([]*PermissionTargetsDetails, *http.Response, error) {
-	path := "/api/security/permissions"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", mediaTypePermissionTargets)
-
-	var permissionTargets []*PermissionTargetsDetails
-	resp, err := s.client.Do(ctx, req, &permissionTargets)
-	return permissionTargets, resp, err
+func (s *SecurityService) ListPermissionTargets(ctx context.Context) (*[]PermissionTargetsDetails, *resty.Response, error) {
+	v := make([]PermissionTargetsDetails, 0)
+	resp, err := s.client.R().
+		SetContext(ctx).
+		SetResult(&v).
+		Get("/api/security/permissions")
+	return &v, resp, err
 }
 
 type Principals struct {
@@ -650,17 +481,13 @@ func (r PermissionTargets) String() string {
 // Since: 2.4.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) GetPermissionTargets(ctx context.Context, permissionName string) (*PermissionTargets, *http.Response, error) {
-	path := fmt.Sprintf("/api/security/permissions/%s", permissionName)
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", mediaTypePermissionTarget)
-
-	permission := new(PermissionTargets)
-	resp, err := s.client.Do(ctx, req, permission)
-	return permission, resp, err
+func (s *SecurityService) GetPermissionTargets(ctx context.Context, permissionName string) (*PermissionTargets, *resty.Response, error) {
+	v := new(PermissionTargets)
+	resp, err := s.client.R().
+		SetContext(ctx).
+		SetResult(v).
+		Get(fmt.Sprintf("/api/security/permissions/%s", permissionName))
+	return v, resp, err
 }
 
 // Creates a new permission target in Artifactory or replaces an existing permission target
@@ -668,32 +495,21 @@ func (s *SecurityService) GetPermissionTargets(ctx context.Context, permissionNa
 // Notes: Requires Artifactory Pro
 // Missing values will be set to the default values as defined by the consumed type.
 // Security: Requires an admin user
-func (s *SecurityService) CreateOrReplacePermissionTargets(ctx context.Context, permissionName string, permissionTargets *PermissionTargets) (*http.Response, error) {
-	path := fmt.Sprintf("/api/security/permissions/%s", permissionName)
-	req, err := s.client.NewJSONEncodedRequest("PUT", path, permissionTargets)
-	if err != nil {
-		return nil, err
-	}
-	return s.client.Do(ctx, req, nil)
+func (s *SecurityService) CreateOrReplacePermissionTargets(ctx context.Context, permissionName string, permissionTargets *PermissionTargets) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(permissionTargets).
+		Put(fmt.Sprintf("/api/security/permissions/%s", permissionName))
 }
 
 // Deletes an Artifactory permission target.
 // Since: 2.4.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *SecurityService) DeletePermissionTargets(ctx context.Context, permissionName string) (*string, *http.Response, error) {
-	path := fmt.Sprintf("/api/security/permissions/%v", permissionName)
-	req, err := s.client.NewRequest("DELETE", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) DeletePermissionTargets(ctx context.Context, permissionName string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Delete(fmt.Sprintf("/api/security/permissions/%s", permissionName))
 }
 
 // Permissions are returned according to the following conventions:
@@ -713,155 +529,82 @@ func (r ItemPermissions) String() string {
 // Since: 2.3.4
 // Notes: Requires Artifactory Pro
 // Security: Requires a valid admin or local admin user.
-func (s *SecurityService) GetEffectiveItemPermissions(ctx context.Context, repoName string, itemPath string) (*ItemPermissions, *http.Response, error) {
+func (s *SecurityService) GetEffectiveItemPermissions(ctx context.Context, repoName string, itemPath string) (*ItemPermissions, *resty.Response, error) {
 	if !strings.HasPrefix(itemPath, "/") {
 		itemPath = itemPath[1:]
 	}
-	path := fmt.Sprintf("/api/storage/%s/%s?permissions", repoName, itemPath)
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", mediaTypeItemPermissions)
 
-	itemPermissions := new(ItemPermissions)
-	resp, err := s.client.Do(ctx, req, itemPermissions)
-	return itemPermissions, resp, err
+	v := new(ItemPermissions)
+	resp, err := s.client.R().
+		SetContext(ctx).
+		SetResult(v).
+		Get(fmt.Sprintf("/api/storage/%s/%s?permissions", repoName, itemPath))
+	return v, resp, err
 }
 
 // Retrieve the security configuration (security.xml).
 // Since: 2.2.0
 // Notes: This is an advanced feature - make sure the new configuration is really what you wanted before saving.
 // Security: Requires a valid admin us
-func (s *SecurityService) GetSecurityConfiguration(ctx context.Context) (*string, *http.Response, error) {
-	path := "/api/system/security"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeXml)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) GetSecurityConfiguration(ctx context.Context) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Get("/api/system/security")
 }
 
 // Creates a new Artifactory encryption key and activates Artifactory key encryption.
 // Since: 3.2.2
 // Notes: This is an advanced feature intended for administrators
 // Security: Requires a valid admin user
-func (s *SecurityService) ActivateArtifactoryKeyEncryption(ctx context.Context) (*string, *http.Response, error) {
-	path := "/api/system/encrypt"
-	req, err := s.client.NewRequest("POST", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) ActivateArtifactoryKeyEncryption(ctx context.Context) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Post("/api/system/encrypt")
 }
 
 // Removes the current Artifactory encryption key and deactivates Artifactory key encryption.
 // Since: 3.2.2
 // Notes: This is an advanced feature intended for administrators
 // Security: Requires a valid admin user
-func (s *SecurityService) DeactivateArtifactoryKeyEncryption(ctx context.Context) (*string, *http.Response, error) {
-	path := "/api/system/decrypt"
-	req, err := s.client.NewRequest("POST", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) DeactivateArtifactoryKeyEncryption(ctx context.Context) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Post("/api/system/decrypt")
 }
 
 // Gets the public key that Artifactory provides to Debian and Opkg clients to verify packages
 // Security: Requires an authenticated user, or anonymous (if "Anonymous Access" is globally enabled)
-func (s *SecurityService) GetGPGPublicKey(ctx context.Context) (*string, *http.Response, error) {
-	path := "/api/gpg/key/public"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) GetGPGPublicKey(ctx context.Context) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Get("/api/gpg/key/public")
 }
 
 // Sets the public key that Artifactory provides to Debian and Opkg clients to verify packages
 // Security: Requires a valid admin user
-func (s *SecurityService) SetGPGPublicKey(ctx context.Context, gpgKey string) (*string, *http.Response, error) {
-	path := "/api/gpg/key/public"
-	req, err := s.client.NewRequest("PUT", path, strings.NewReader(gpgKey))
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Content-type", client.MediaTypePlain)
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) SetGPGPublicKey(ctx context.Context, gpgKey string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(gpgKey).
+		Put("/api/gpg/key/public")
 }
 
 // Sets the private key that Artifactory will use to sign Debian and ipk packages
 // Security: Requires a valid admin user
-func (s *SecurityService) SetGPGPrivateKey(ctx context.Context, gpgKey string) (*string, *http.Response, error) {
-	path := "/api/gpg/key/private"
-	req, err := s.client.NewRequest("PUT", path, strings.NewReader(gpgKey))
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Content-type", client.MediaTypePlain)
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) SetGPGPrivateKey(ctx context.Context, gpgKey string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(gpgKey).
+		Put("/api/gpg/key/private")
 }
 
 // Sets the pass phrase required signing Debian and ipk packages using the private key
 // Security: Requires a valid admin user
-func (s *SecurityService) SetGPGPassPhrase(ctx context.Context, passphrase string) (*string, *http.Response, error) {
-	path := "/api/gpg/key/passphrase"
-	req, err := s.client.NewRequest("PUT", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("X-GPG-PASSPHRASE", passphrase)
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) SetGPGPassPhrase(ctx context.Context, passphrase string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetHeader("X-GPG-PASSPHRASE", passphrase).
+		Put("/api/gpg/key/passphrase")
 }
 
 type AccessTokenOptions struct {
@@ -903,17 +646,19 @@ func (r AccessToken) String() string {
 // Creates an access token
 // Since: 5.0.0
 // Security: Requires a valid user
-func (s *SecurityService) CreateToken(ctx context.Context, opts *AccessTokenOptions) (*AccessToken, *http.Response, error) {
-	path := "/api/security/token"
-	req, err := s.client.NewURLEncodedRequest("POST", path, opts)
+func (s *SecurityService) CreateToken(ctx context.Context, opts *AccessTokenOptions) (*AccessToken, *resty.Response, error) {
+	params, err := query.Values(opts)
 	if err != nil {
 		return nil, nil, err
 	}
-	req.Header.Set("Accept", client.MediaTypeJson)
 
 	token := new(AccessToken)
-	resp, err := s.client.Do(ctx, req, token)
-	return token, resp, err
+	res, err := s.client.R().
+		SetContext(ctx).
+		SetQueryParamsFromValues(params).
+		SetResult(token).
+		Post("/api/security/token")
+	return token, res, err
 }
 
 type AccessTokenRefreshOptions struct {
@@ -947,17 +692,18 @@ type AccessTokenRefreshOptions struct {
 // Refresh an access token to extend its validity. If only the access token and the refresh token are provided (and no other parameters), this pair is used for authentication. If username or any other parameter is provided, then the request must be authenticated by a token that grants admin permissions.
 // Since: 5.0.0
 // Security: Requires a valid user (unless both access token and refresh token are provided)
-func (s *SecurityService) RefreshToken(ctx context.Context, opts *AccessTokenRefreshOptions) (*AccessToken, *http.Response, error) {
-	path := "/api/security/token"
-	req, err := s.client.NewURLEncodedRequest("POST", path, opts)
+func (s *SecurityService) RefreshToken(ctx context.Context, opts *AccessTokenRefreshOptions) (*AccessToken, *resty.Response, error) {
+	params, err := query.Values(opts)
 	if err != nil {
 		return nil, nil, err
 	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
 	token := new(AccessToken)
-	resp, err := s.client.Do(ctx, req, token)
-	return token, resp, err
+	res, err := s.client.R().
+		SetContext(ctx).
+		SetQueryParamsFromValues(params).
+		SetResult(token).
+		Post("/api/security/token")
+	return token, res, err
 }
 
 type AccessTokenRevokeOptions struct {
@@ -967,39 +713,25 @@ type AccessTokenRevokeOptions struct {
 // Revoke an access token
 // Since: 5.0.0
 // Security: Requires a valid user
-func (s *SecurityService) RevokeToken(ctx context.Context, opts AccessTokenRevokeOptions) (*string, *http.Response, error) {
-	path := "/api/security/token/revoke"
-	req, err := s.client.NewURLEncodedRequest("POST", path, opts)
+func (s *SecurityService) RevokeToken(ctx context.Context, opts AccessTokenRevokeOptions) (*resty.Response, error) {
+	params, err := query.Values(opts)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	req.Header.Set("Accept", client.MediaTypeJson)
 
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+	return s.client.R().
+		SetContext(ctx).
+		SetQueryParamsFromValues(params).
+		Post("/api/security/token/revoke")
 }
 
 // Provides the Service ID of an Artifactory instance or cluster. Up to version 5.5.1, the Artiafctory Service ID is formatted jf-artifactory@<id>. From version 5.5.2 the Service ID is formatted jfrt@<id>.
 // Since: 5.0.0
 // Security: Requires an admin user
-func (s *SecurityService) GetServiceId(ctx context.Context) (*string, *http.Response, error) {
-	path := "/api/system/service_id"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypePlain)
-
-	buf := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buf)
-	if err != nil {
-		return nil, resp, err
-	}
-	return String(buf.String()), resp, nil
+func (s *SecurityService) GetServiceId(ctx context.Context) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Get("/api/system/service_id")
 }
 
 type CertificateDetails struct {
@@ -1019,48 +751,30 @@ func (r CertificateDetails) String() string {
 // Returns a list of installed SSL certificates.
 // Since:5.4.0
 // Security: Requires an admin user
-func (s *SecurityService) GetCertificates(ctx context.Context) (*[]CertificateDetails, *http.Response, error) {
-	path := "/api/system/security/certificates"
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
-	certificates := new([]CertificateDetails)
-	resp, err := s.client.Do(ctx, req, certificates)
-	return certificates, resp, err
+func (s *SecurityService) GetCertificates(ctx context.Context) (*[]CertificateDetails, *resty.Response, error) {
+	v := make([]CertificateDetails, 0)
+	resp, err := s.client.R().
+		SetContext(ctx).
+		SetResult(&v).
+		Get("/api/system/security/certificates")
+	return &v, resp, err
 }
 
 // Adds an SSL certificate.
 // Since:5.4.0
 // Security: Requires an admin user
-func (s *SecurityService) AddCertificate(ctx context.Context, alias string, pem *os.File) (*client.Status, *http.Response, error) {
-	path := fmt.Sprintf("/api/system/security/certificates/%s", alias)
-	req, err := s.client.NewRequest("POST", path, pem)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Content-type", client.MediaTypePlain)
-	req.Header.Set("Accept", client.MediaTypeJson)
-
-	status := new(client.Status)
-	resp, err := s.client.Do(ctx, req, status)
-	return status, resp, err
+func (s *SecurityService) AddCertificate(ctx context.Context, alias string, pem string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(pem).
+		Post(fmt.Sprintf("/api/system/security/certificates/%s", alias))
 }
 
 // Deletes an SSL certificate.
 // Since:5.4.0
 // Security: Requires an admin user
-func (s *SecurityService) DeleteCertificate(ctx context.Context, alias string) (*client.Status, *http.Response, error) {
-	path := fmt.Sprintf("/api/system/security/certificates/%s", alias)
-	req, err := s.client.NewRequest("DELETE", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", client.MediaTypeJson)
-
-	status := new(client.Status)
-	resp, err := s.client.Do(ctx, req, status)
-	return status, resp, err
+func (s *SecurityService) DeleteCertificate(ctx context.Context, alias string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Delete(fmt.Sprintf("/api/system/security/certificates/%s", alias))
 }

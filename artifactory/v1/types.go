@@ -1,6 +1,8 @@
 package v1
 
-import "github.com/atlassian/go-artifactory/v2/artifactory/client"
+import (
+	"github.com/go-resty/resty/v2"
+)
 
 const (
 	mediaTypeLocalRepository   = "application/vnd.org.jfrog.artifactory.repositories.LocalRepositoryConfiguration+json"
@@ -19,7 +21,7 @@ const (
 )
 
 type Service struct {
-	client *client.Client
+	client *resty.Client
 }
 
 type V1 struct {

@@ -1,9 +1,9 @@
 package artifactory
 
 import (
-	"github.com/atlassian/go-artifactory/v2/artifactory/client"
-	"github.com/atlassian/go-artifactory/v2/artifactory/v1"
-	"github.com/atlassian/go-artifactory/v2/artifactory/v2"
+	client "github.com/atlassian/go-artifactory/v3/artifactory/client"
+	v1 "github.com/atlassian/go-artifactory/v3/artifactory/v1"
+	v2 "github.com/atlassian/go-artifactory/v3/artifactory/v2"
 
 	"net/http"
 )
@@ -15,17 +15,7 @@ type Artifactory struct {
 }
 
 // NewClient creates a Artifactory from a provided base url for an artifactory instance and a service Artifactory
-func NewClient(baseURL string, httpClient *http.Client) (*Artifactory, error) {
-	c, err := client.NewClient(baseURL, httpClient)
-
-	if err != nil {
-		return nil, err
-	}
-
-	rt := &Artifactory{
-		V1: v1.NewV1(c),
-		V2: v2.NewV2(c),
-	}
-
-	return rt, nil
+func NewClient(baseURL string, transport http.RoundTripper) *Artifactory {
+	c := client.NewClient(baseURL, &http.Client{Transport: transport}).SetRetryCount(5)
+	return &Artifactory{v1.NewV1(c), v2.NewV2(c)}
 }

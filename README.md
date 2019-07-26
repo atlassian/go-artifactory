@@ -3,20 +3,38 @@ go-artifactory is a Go client library for accessing the [Artifactory API](https:
 
 [![Build Status](https://travis-ci.org/atlassian/go-artifactory.svg?branch=master)](https://travis-ci.org/atlassian/go-artifactory)
 
-## V2 Breaking Changes ##
-Due to the release of the new artifactory api this library has been significantly reworked. The import path has changed
-to github.com/atlassian/go-artifactory/pkg/artifactory to github.com/atlassian/go-artifactory/artifactory. 
+## V3 Breaking Changes ##
+go-artifactory now depends on [resty](https://github.com/go-resty/resty/). This
+was done to consolidate all of the request logic throughout the client. There 
+was significant inconsistencies with the behaviour of the return objects, some
+methods returned client.Status, others returned errors on 4/5xx. The new 
+behaviour is now all methods return `*resty.Response` and `error`. error will be
+non-nil if the request fails. If err is nil than the response is non-nil but may
+still be 4/5xx. If response is 2xx than methods that return a body will return a
+non-nil body.
 
-Services can now be accessed by including their API version i.e rt.V1.Security instead of rt.Security
+Methods that used to parse the body as a string now do not return anything. The
+body can be fetched with `resp.String()`.
 
+Response checking should look like:
+```go
+repo, resp, err := client.V1.Repositories.GetRepository(context.Background(), "my-repo")
+if err != nil {
+	fmt.Printf("request failed: %s\n", err)
+} else if resp.IsError() { // do on 4/5xx
+	fmt.Printf("response non-successful: %s\n", resp.Status())
+} else {
+	fmt.Println("got body: %v", repo)
+}
+```
 
 ## Requirements ##
-- Go version 1.11+
+- Go version 1.12+
 - Go mod is used for dependency management
 
 ## Usage ##
 ```go
-import "github.com/atlassian/go-artifactory/artifactory"
+import "github.com/atlassian/go-artifactory/v3/artifactory"
 ```
 
 Construct a new Artifactory client, then use the various services on the client to

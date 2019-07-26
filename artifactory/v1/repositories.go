@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strings"
+
+	"github.com/go-resty/resty/v2"
+	"github.com/google/go-querystring/query"
 )
 
 type RepositoriesService Service
@@ -31,17 +32,18 @@ type RepositoryListOptions struct {
 // Returns a list of minimal repository details for all repositories of the specified type.
 // Since: 2.2.0
 // Security: Requires a privileged user (can be anonymous)
-func (s *RepositoriesService) ListRepositories(ctx context.Context, opt *RepositoryListOptions) (*[]RepositoryDetails, *http.Response, error) {
-	path := "/api/repositories/"
-	req, err := s.client.NewJSONEncodedRequest("GET", path, opt)
+func (s *RepositoriesService) ListRepositories(ctx context.Context, opt *RepositoryListOptions) (*[]RepositoryDetails, *resty.Response, error) {
+	params, err := query.Values(opt)
 	if err != nil {
 		return nil, nil, err
 	}
-	req.Header.Set("Accept", mediaTypeRepositoryDetails)
-
-	repos := new([]RepositoryDetails)
-	resp, err := s.client.Do(ctx, req, &repos)
-	return repos, resp, err
+	v := make([]RepositoryDetails, 0)
+	resp, err := s.client.R().
+		SetContext(ctx).
+		SetQueryParamsFromValues(params).
+		SetResult(&v).
+		Get("/api/repositories/")
+	return &v, resp, err
 }
 
 // application/vnd.org.jfrog.artifactory.repositories.LocalRepositoryConfiguration+json
@@ -101,7 +103,7 @@ func (r LocalRepository) String() string {
 // An existing repository with the same key are removed from the configuration and its content is removed!
 // Missing values are set to the default values as defined by the consumed type spec.
 // Security: Requires an admin user
-func (s *RepositoriesService) CreateLocal(ctx context.Context, repo *LocalRepository) (*http.Response, error) {
+func (s *RepositoriesService) CreateLocal(ctx context.Context, repo *LocalRepository) (*resty.Response, error) {
 	return s.create(ctx, *repo.Key, repo)
 }
 
@@ -109,12 +111,10 @@ func (s *RepositoriesService) CreateLocal(ctx context.Context, repo *LocalReposi
 // Since: 2.3.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user for complete repository configuration. Non-admin users will receive only partial configuration data.
-func (s *RepositoriesService) GetLocal(ctx context.Context, repo string) (*LocalRepository, *http.Response, error) {
-	repository, resp, err := s.get(ctx, repo, new(LocalRepository))
-	if err != nil {
-		return nil, resp, err
-	}
-	return repository.(*LocalRepository), resp, nil
+func (s *RepositoriesService) GetLocal(ctx context.Context, repo string) (*LocalRepository, *resty.Response, error) {
+	repository := new(LocalRepository)
+	resp, err := s.get(ctx, repo, repository)
+	return repository, resp, err
 }
 
 // Updates an exiting repository configuration in Artifactory with the provided configuration elements.
@@ -122,7 +122,7 @@ func (s *RepositoriesService) GetLocal(ctx context.Context, repo string) (*Local
 // Notes: Requires Artifactory Pro
 // The class of a repository (the rclass attribute cannot be updated.
 // Security: Requires an admin user
-func (s *RepositoriesService) UpdateLocal(ctx context.Context, repo string, repository *LocalRepository) (*http.Response, error) {
+func (s *RepositoriesService) UpdateLocal(ctx context.Context, repo string, repository *LocalRepository) (*resty.Response, error) {
 	return s.update(ctx, repo, repository)
 }
 
@@ -130,7 +130,7 @@ func (s *RepositoriesService) UpdateLocal(ctx context.Context, repo string, repo
 // Since: 2.3.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *RepositoriesService) DeleteLocal(ctx context.Context, repo string) (*http.Response, error) {
+func (s *RepositoriesService) DeleteLocal(ctx context.Context, repo string) (*resty.Response, error) {
 	return s.delete(ctx, repo)
 }
 
@@ -252,7 +252,7 @@ func (r RemoteRepository) String() string {
 // An existing repository with the same key are removed from the configuration and its content is removed!
 // Missing values are set to the default values as defined by the consumed type spec.
 // Security: Requires an admin user
-func (s *RepositoriesService) CreateRemote(ctx context.Context, repo *RemoteRepository) (*http.Response, error) {
+func (s *RepositoriesService) CreateRemote(ctx context.Context, repo *RemoteRepository) (*resty.Response, error) {
 	return s.create(ctx, *repo.Key, repo)
 }
 
@@ -260,12 +260,10 @@ func (s *RepositoriesService) CreateRemote(ctx context.Context, repo *RemoteRepo
 // Since: 2.3.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user for complete repository configuration. Non-admin users will receive only partial configuration data.
-func (s *RepositoriesService) GetRemote(ctx context.Context, repo string) (*RemoteRepository, *http.Response, error) {
-	repository, resp, err := s.get(ctx, repo, new(RemoteRepository))
-	if err != nil {
-		return nil, resp, err
-	}
-	return repository.(*RemoteRepository), resp, nil
+func (s *RepositoriesService) GetRemote(ctx context.Context, repo string) (*RemoteRepository, *resty.Response, error) {
+	repository := new(RemoteRepository)
+	resp, err := s.get(ctx, repo, repository)
+	return repository, resp, err
 }
 
 // Updates an exiting repository configuration in Artifactory with the provided configuration elements.
@@ -273,7 +271,7 @@ func (s *RepositoriesService) GetRemote(ctx context.Context, repo string) (*Remo
 // Notes: Requires Artifactory Pro
 // The class of a repository (the rclass attribute cannot be updated.
 // Security: Requires an admin user
-func (s *RepositoriesService) UpdateRemote(ctx context.Context, repo string, repository *RemoteRepository) (*http.Response, error) {
+func (s *RepositoriesService) UpdateRemote(ctx context.Context, repo string, repository *RemoteRepository) (*resty.Response, error) {
 	return s.update(ctx, repo, repository)
 }
 
@@ -281,7 +279,7 @@ func (s *RepositoriesService) UpdateRemote(ctx context.Context, repo string, rep
 // Since: 2.3.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *RepositoriesService) DeleteRemote(ctx context.Context, repo string) (*http.Response, error) {
+func (s *RepositoriesService) DeleteRemote(ctx context.Context, repo string) (*resty.Response, error) {
 	return s.delete(ctx, repo)
 }
 
@@ -332,7 +330,7 @@ func (r VirtualRepository) String() string {
 // An existing repository with the same key are removed from the configuration and its content is removed!
 // Missing values are set to the default values as defined by the consumed type spec.
 // Security: Requires an admin user
-func (s *RepositoriesService) CreateVirtual(ctx context.Context, repo *VirtualRepository) (*http.Response, error) {
+func (s *RepositoriesService) CreateVirtual(ctx context.Context, repo *VirtualRepository) (*resty.Response, error) {
 	return s.create(ctx, *repo.Key, repo)
 }
 
@@ -340,12 +338,10 @@ func (s *RepositoriesService) CreateVirtual(ctx context.Context, repo *VirtualRe
 // Since: 2.3.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user for complete repository configuration. Non-admin users will receive only partial configuration data.
-func (s *RepositoriesService) GetVirtual(ctx context.Context, repo string) (*VirtualRepository, *http.Response, error) {
-	repository, resp, err := s.get(ctx, repo, new(VirtualRepository))
-	if err != nil {
-		return nil, resp, err
-	}
-	return repository.(*VirtualRepository), resp, nil
+func (s *RepositoriesService) GetVirtual(ctx context.Context, repo string) (*VirtualRepository, *resty.Response, error) {
+	repository := new(VirtualRepository)
+	resp, err := s.get(ctx, repo, repository)
+	return repository, resp, err
 }
 
 // Updates an exiting repository configuration in Artifactory with the provided configuration elements.
@@ -353,7 +349,7 @@ func (s *RepositoriesService) GetVirtual(ctx context.Context, repo string) (*Vir
 // Notes: Requires Artifactory Pro
 // The class of a repository (the rclass attribute cannot be updated.
 // Security: Requires an admin user
-func (s *RepositoriesService) UpdateVirtual(ctx context.Context, repo string, repository *VirtualRepository) (*http.Response, error) {
+func (s *RepositoriesService) UpdateVirtual(ctx context.Context, repo string, repository *VirtualRepository) (*resty.Response, error) {
 	return s.update(ctx, repo, repository)
 }
 
@@ -361,50 +357,34 @@ func (s *RepositoriesService) UpdateVirtual(ctx context.Context, repo string, re
 // Since: 2.3.0
 // Notes: Requires Artifactory Pro
 // Security: Requires an admin user
-func (s *RepositoriesService) DeleteVirtual(ctx context.Context, repo string) (*http.Response, error) {
+func (s *RepositoriesService) DeleteVirtual(ctx context.Context, repo string) (*resty.Response, error) {
 	return s.delete(ctx, repo)
 }
 
-// Generic repo CRUD operations
-func (s *RepositoriesService) create(ctx context.Context, repo string, v interface{}) (*http.Response, error) {
-	path := fmt.Sprintf("/api/repositories/%s", repo)
-	req, err := s.client.NewJSONEncodedRequest("PUT", path, v)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(ctx, req, nil)
+// // Generic repo CRUD operations
+func (s *RepositoriesService) create(ctx context.Context, repo string, v interface{}) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(v).
+		Put(fmt.Sprintf("/api/repositories/%s", repo))
 }
 
-func (s *RepositoriesService) get(ctx context.Context, repo string, v interface{}) (interface{}, *http.Response, error) {
-	path := fmt.Sprintf("/api/repositories/%v", repo)
-	req, err := s.client.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	acceptHeaders := []string{mediaTypeLocalRepository, mediaTypeVirtualRepository, mediaTypeRemoteRepository}
-	req.Header.Set("Accept", strings.Join(acceptHeaders, ", "))
-
-	resp, err := s.client.Do(ctx, req, v)
-	return v, resp, err
+func (s *RepositoriesService) get(ctx context.Context, repo string, v interface{}) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetResult(v).
+		Get(fmt.Sprintf("/api/repositories/%s", repo))
 }
 
-func (s *RepositoriesService) update(ctx context.Context, repo string, v interface{}) (*http.Response, error) {
-	path := fmt.Sprintf("/api/repositories/%v", repo)
-	req, err := s.client.NewJSONEncodedRequest("POST", path, v)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(ctx, req, nil)
+func (s *RepositoriesService) update(ctx context.Context, repo string, v interface{}) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		SetBody(v).
+		Post(fmt.Sprintf("/api/repositories/%s", repo))
 }
 
-func (s *RepositoriesService) delete(ctx context.Context, repo string) (*http.Response, error) {
-	path := fmt.Sprintf("/api/repositories/%v", repo)
-	req, err := s.client.NewRequest("DELETE", path, nil)
-	if err != nil {
-		return nil, err
-	}
-	return s.client.Do(ctx, req, nil)
+func (s *RepositoriesService) delete(ctx context.Context, repo string) (*resty.Response, error) {
+	return s.client.R().
+		SetContext(ctx).
+		Delete(fmt.Sprintf("/api/repositories/%s", repo))
 }

@@ -1,10 +1,10 @@
 package v2
 
-import "github.com/atlassian/go-artifactory/v2/artifactory/client"
+import "github.com/go-resty/resty/v2"
 
 func String(v string) *string { return &v }
 
-func NewV2(client *client.Client) *V2 {
+func NewV2(client *resty.Client) *V2 {
 	v := &V2{}
 	v.common.client = client
 
