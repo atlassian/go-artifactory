@@ -20,6 +20,9 @@ func NewClient(baseURL string, transport http.RoundTripper) *Artifactory {
 	c := client.NewClient(baseURL, &http.Client{Transport: transport}).
 		SetRetryCount(5).
 		SetPreRequestHook(func(client *resty.Client, req *http.Request) error {
+			// Workaround as Artifactory does not support charset in Content-Type
+			// bug https://www.jfrog.com/jira/browse/RTFACT-14981
+			// upstream fix https://github.com/go-resty/resty/issues/258
 			if req.Header.Get("Content-Type") == "application/json; charset=utf-8" {
 				req.Header.Set("Content-Type", "application/json")
 			}
