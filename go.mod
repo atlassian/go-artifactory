@@ -1,4 +1,4 @@
-module github.com/atlassian/go-artifactory/v2
+module github.com/janggwan-im/go-artifactory/v2
 
 require (
 	github.com/google/go-querystring v1.0.0
