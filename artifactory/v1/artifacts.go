@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"github.com/atlassian/go-artifactory/v2/artifactory/client"
 )
 
 // ArtifactService exposes the Artifact API endpoints from Artifactory
@@ -216,7 +215,7 @@ func (s *ArtifactService) FileInfo(ctx context.Context, repoKey string, filePath
 		return nil, nil, err
 	}
 
-	req.Header.Set("Accept", client.MediaTypeJson)
+	req.Header.Set("Accept", mediaTypeFileInfo)
 
 	fileInfo := new(FileInfo)
 	resp, err := s.client.Do(ctx, req, fileInfo)
