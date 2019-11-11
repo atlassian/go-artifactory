@@ -226,7 +226,7 @@ func (s *ArtifactService) FileInfo(ctx context.Context, repoKey string, filePath
 // Security: Requires a privileged user (can be anonymous)
 func (s *ArtifactService) FileContents(ctx context.Context, repoKey string, filePath string, target interface{}) (*FileInfo, *http.Response, error) {
 	if target == nil {
-		return nil, nil, fmt.Errorf("Target is not allowed to be nil")
+		return nil, nil, fmt.Errorf("target is not allowed to be nil")
 	}
 
 	fileInfo, _, err := s.FileInfo(ctx, repoKey, filePath)
