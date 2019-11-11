@@ -183,3 +183,63 @@ func (s *ArtifactService) DeleteRepositoryReplicationConfig(ctx context.Context,
 	}
 	return s.client.Do(ctx, req, nil)
 }
+
+type Checksums struct {
+	Md5                    *string             `json:"md5,omitempty"`
+	Sha1                   *string             `json:"sha1,omitempty"`
+	Sha256                 *string             `json:"sha256,omitempty"`
+}
+
+type FileInfo struct {
+	Repo                   *string             `json:"repo,omitempty"`
+	Path                   *string             `json:"path,omitempty"`
+	Created                *string             `json:"created,omitempty"`
+	CreatedBy              *string             `json:"createdBy,omitempty"`
+	LastModified           *string             `json:"lastModified,omitempty"`
+	ModifiedBy             *string             `json:"modifiedBy,omitempty"`
+	LastUpdated            *string             `json:"lastUpdated,omitempty"`
+	DownloadUri            *string             `json:"downloadUri,omitempty"`
+	MimeType               *string             `json:"mimeType,omitempty"`
+	Size                   *int                `json:"size,string,omitempty"`
+	Checksums              *Checksums          `json:"checksums,omitempty"`
+	OriginalChecksums      *Checksums          `json:"originalChecksums,omitempty"`
+	Uri                    *string             `json:"uri,omitempty"`
+}
+
+// Description: Returns the metadata of the given file. Supported by local, local-cached and virtual repositories.
+// Security: Requires a privileged user (can be anonymous)
+func (s *ArtifactService) FileInfo(ctx context.Context, repoKey string, filePath string) (*FileInfo, *http.Response, error) {
+	path := fmt.Sprintf("/api/storage/%s/%s", repoKey, filePath)
+	req, err := s.client.NewRequest("GET", path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req.Header.Set("Accept", mediaTypeFileInfo)
+
+	fileInfo := new(FileInfo)
+	resp, err := s.client.Do(ctx, req, fileInfo)
+	return fileInfo, resp, err
+}
+
+// Description: Copies the specified file to the given target. Supported by local, local-cached and virtual repositories.
+// Security: Requires a privileged user (can be anonymous)
+func (s *ArtifactService) FileContents(ctx context.Context, repoKey string, filePath string, target interface{}) (*FileInfo, *http.Response, error) {
+	if target == nil {
+		return nil, nil, fmt.Errorf("target is not allowed to be nil")
+	}
+
+	fileInfo, _, err := s.FileInfo(ctx, repoKey, filePath)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := http.NewRequest("GET", *fileInfo.DownloadUri, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	resp, err := s.client.Do(ctx, req, target)
+	return fileInfo, resp, err
+}
