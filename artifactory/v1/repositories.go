@@ -319,6 +319,7 @@ type VirtualRepository struct {
 	PomRepositoryReferencesCleanupPolicy          *string   `json:"pomRepositoryReferencesCleanupPolicy,omitempty"`
 	Repositories                                  *[]string `json:"repositories,omitempty"`
 	VirtualRetrievalCachePeriodSecs               *int      `json:"virtualRetrievalCachePeriodSecs,omitempty"`
+	ResolveDockerTagsByTimestamp                  *bool     `json:"resolveDockerTagsByTimestamp,omitempty"`
 }
 
 func (r VirtualRepository) String() string {
