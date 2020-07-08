@@ -17,6 +17,7 @@ const (
 	mediaTypeItemPermissions   = "application/vnd.org.jfrog.artifactory.storage.ItemPermissions+json"
 	mediaTypeReplicationConfig = "application/vnd.org.jfrog.artifactory.replications.ReplicationConfigRequest+json"
 	mediaTypeFileInfo          = "application/vnd.org.jfrog.artifactory.storage.FileInfo+json"
+	mediaTypeFolderInfo        = "application/vnd.org.jfrog.artifactory.storage.FolderInfo+json"
 )
 
 type Service struct {
