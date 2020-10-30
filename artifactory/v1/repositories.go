@@ -55,6 +55,7 @@ type LocalRepository struct {
 	ExcludesPattern              *string   `json:"excludesPattern,omitempty"`
 	ArchiveBrowsingEnabled       *bool     `json:"archiveBrowsingEnabled,omitempty"`
 	BlackedOut                   *bool     `json:"blackedOut,omitempty"`
+	BlockPushingSchema1          *bool     `json:"blockPushingSchema1,omitempty"`
 	BlockXrayUnscannedArtifacts  *bool     `json:"blockXrayUnscannedArtifacts,omitempty"`
 	CalculateYumMetadata         *bool     `json:"calculateYumMetadata,omitempty"`
 	ChecksumPolicyType           *string   `json:"checksumPolicyType,omitempty"`
@@ -172,6 +173,7 @@ type RemoteRepository struct {
 	AssumedOfflinePeriodSecs          *int                    `json:"assumedOfflinePeriodSecs,omitempty"`
 	BlackedOut                        *bool                   `json:"blackedOut,omitempty"`
 	BlockMismatchingMimeTypes         *bool                   `json:"blockMismatchingMimeTypes,omitempty"`
+	BlockPushingSchema1               *bool                   `json:"blockPushingSchema1,omitempty"`
 	BlockXrayUnscannedArtifacts       *bool                   `json:"blockXrayUnscannedArtifacts,omitempty"`
 	BypassHeadRequests                *bool                   `json:"bypassHeadRequests,omitempty"`
 	ContentSynchronisation            *ContentSynchronisation `json:"contentSynchronisation,omitempty"`
