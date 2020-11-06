@@ -4,19 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/atlassian/go-artifactory/v2/artifactory/client"
 	"net/http"
+
+	"github.com/atlassian/go-artifactory/v2/artifactory/client"
 )
 
 type SecurityService Service
 
 // read, write, annotate, delete, manage
 const (
-	PERM_READ     = "read"
-	PERM_WRITE    = "write"
-	PERM_ANNOTATE = "annotate"
-	PERM_DELETE   = "delete"
-	PERM_MANAGE   = "manage"
+	PERM_READ                 = "read"
+	PERM_WRITE                = "write"
+	PERM_ANNOTATE             = "annotate"
+	PERM_DELETE               = "delete"
+	PERM_MANAGE               = "manage"
+	PERM_MANAGE_XRAY_METADATA = "managedXrayMeta"
 
 	PERMISSION_SCHEMA = "application/vnd.org.jfrog.artifactory.security.PermissionTargetV2+json"
 )
