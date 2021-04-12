@@ -81,6 +81,7 @@ type LocalRepository struct {
 	HandleSnapshots              *bool     `json:"handleSnapshots,omitempty"`
 	MaxUniqueSnapshots           *int      `json:"maxUniqueSnapshots,omitempty"`
 	MaxUniqueTags                *int      `json:"maxUniqueTags,omitempty"`
+	PriorityResolution           *bool     `json:"priorityResolution,omitempty"`
 	PropertySets                 *[]string `json:"propertySets,omitempty"`
 	RepoLayoutRef                *string   `json:"repoLayoutRef,omitempty"`
 	SnapshotVersionBehavior      *string   `json:"snapshotVersionBehavior,omitempty"`
@@ -209,6 +210,7 @@ type RemoteRepository struct {
 	MissedRetrievalCachePeriodSecs    *int                    `json:"missedRetrievalCachePeriodSecs,omitempty"`
 	Offline                           *bool                   `json:"offline,omitempty"`
 	Password                          *string                 `json:"password,omitempty"`
+	PriorityResolution                *bool                   `json:"priorityResolution,omitempty"`
 	PropagateQueryParams              *bool                   `json:"propagateQueryParams,omitempty"`
 	PropertySets                      *[]string               `json:"propertySets,omitempty"`
 	Proxy                             *string                 `json:"proxy,omitempty"`
