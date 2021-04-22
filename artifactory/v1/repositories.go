@@ -315,7 +315,7 @@ type VirtualRepository struct {
 	EnableVagrantSupport                          *bool     `json:"enableVagrantSupport,omitempty"`
 	ExternalDependenciesEnabled                   *bool     `json:"externalDependenciesEnabled,omitempty"`
 	ForceNugetAuthentication                      *bool     `json:"forceNugetAuthentication,omitempty"`
-	KeyPair                                       *string   `json:"keyPair,omitempty"`
+	KeyPair                                       *string   `json:"keyPairRef,omitempty"`
 	PomRepositoryReferencesCleanupPolicy          *string   `json:"pomRepositoryReferencesCleanupPolicy,omitempty"`
 	Repositories                                  *[]string `json:"repositories,omitempty"`
 	VirtualRetrievalCachePeriodSecs               *int      `json:"virtualRetrievalCachePeriodSecs,omitempty"`
