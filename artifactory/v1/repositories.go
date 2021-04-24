@@ -57,6 +57,7 @@ type LocalRepository struct {
 	BlackedOut                   *bool     `json:"blackedOut,omitempty"`
 	BlockXrayUnscannedArtifacts  *bool     `json:"blockXrayUnscannedArtifacts,omitempty"`
 	CalculateYumMetadata         *bool     `json:"calculateYumMetadata,omitempty"`
+	CargoAnonymousAccess         *bool     `json:"cargoAnonymousAccess"`
 	ChecksumPolicyType           *string   `json:"checksumPolicyType,omitempty"`
 	DebianTrivialLayout          *bool     `json:"debianTrivialLayout,omitempty"`
 	DockerApiVersion             *string   `json:"dockerApiVersion,omitempty"`
@@ -239,6 +240,9 @@ type RemoteRepository struct {
 	FeedContextPath     *string `json:"feedContextPath,omitempty"`
 	DownloadContextPath *string `json:"downloadContextPath,omitempty"`
 	V3FeedUrl           *string `json:"v3FeedUrl,omitempty"`
+
+	CargoAnonymousAccess *bool   `json:"cargoAnonymousAccess"`
+	GitRegistryUrl       *string `json:"gitRegistryUrl"`
 }
 
 func (r RemoteRepository) String() string {
