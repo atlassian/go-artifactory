@@ -12,20 +12,30 @@ import (
 // ArtifactService exposes the Artifact API endpoints from Artifactory
 type ArtifactService Service
 
+// ProxyRef is the model of the Artifactory Proxy Reference
+type ProxyRef struct {
+	Key          *string `json:"key,omitempty"`
+	Host         *string `json:"host,omitempty"`
+	Port         *int    `json:"port,omitempty"`
+	DefaultProxy *bool   `json:"defaultProxy,omitempty"`
+}
+
 // SingleReplicationConfig is the model of the Artifactory Replication Config
 type SingleReplicationConfig struct {
-	RepoKey                *string `json:"repoKey,omitempty"`
-	URL                    *string `json:"url,omitempty"`
-	SocketTimeoutMillis    *int    `json:"socketTimeoutMillis,omitempty"`
-	Username               *string `json:"username,omitempty"`
-	Password               *string `json:"password,omitempty"`
-	Enabled                *bool   `json:"enabled,omitempty"`
-	SyncDeletes            *bool   `json:"syncDeletes,omitempty"`
-	SyncProperties         *bool   `json:"syncProperties,omitempty"`
-	SyncStatistics         *bool   `json:"syncStatistics,omitempty"`
-	PathPrefix             *string `json:"pathPrefix,omitempty"`
-	CronExp                *string `json:"cronExp,omitempty"` // Only required when getting list of repositories as C*UD operations will be done through a repConfig obj
-	EnableEventReplication *bool   `json:"enableEventReplication,omitempty"`
+	RepoKey                *string   `json:"repoKey,omitempty"`
+	URL                    *string   `json:"url,omitempty"`
+	SocketTimeoutMillis    *int      `json:"socketTimeoutMillis,omitempty"`
+	Username               *string   `json:"username,omitempty"`
+	Password               *string   `json:"password,omitempty"`
+	Enabled                *bool     `json:"enabled,omitempty"`
+	SyncDeletes            *bool     `json:"syncDeletes,omitempty"`
+	SyncProperties         *bool     `json:"syncProperties,omitempty"`
+	SyncStatistics         *bool     `json:"syncStatistics,omitempty"`
+	PathPrefix             *string   `json:"pathPrefix,omitempty"`
+	Proxy                  *string   `json:"proxy,omitempty"`
+	ProxyRef               *ProxyRef `json:"proxyRef,omitempty"`
+	CronExp                *string   `json:"cronExp,omitempty"` // Only required when getting list of repositories as C*UD operations will be done through a repConfig obj
+	EnableEventReplication *bool     `json:"enableEventReplication,omitempty"`
 }
 
 // ReplicationConfig is the model for the multi replication config API endpoints. Its usage is preferred over
@@ -185,25 +195,25 @@ func (s *ArtifactService) DeleteRepositoryReplicationConfig(ctx context.Context,
 }
 
 type Checksums struct {
-	Md5                    *string             `json:"md5,omitempty"`
-	Sha1                   *string             `json:"sha1,omitempty"`
-	Sha256                 *string             `json:"sha256,omitempty"`
+	Md5    *string `json:"md5,omitempty"`
+	Sha1   *string `json:"sha1,omitempty"`
+	Sha256 *string `json:"sha256,omitempty"`
 }
 
 type FileInfo struct {
-	Repo                   *string             `json:"repo,omitempty"`
-	Path                   *string             `json:"path,omitempty"`
-	Created                *string             `json:"created,omitempty"`
-	CreatedBy              *string             `json:"createdBy,omitempty"`
-	LastModified           *string             `json:"lastModified,omitempty"`
-	ModifiedBy             *string             `json:"modifiedBy,omitempty"`
-	LastUpdated            *string             `json:"lastUpdated,omitempty"`
-	DownloadUri            *string             `json:"downloadUri,omitempty"`
-	MimeType               *string             `json:"mimeType,omitempty"`
-	Size                   *int                `json:"size,string,omitempty"`
-	Checksums              *Checksums          `json:"checksums,omitempty"`
-	OriginalChecksums      *Checksums          `json:"originalChecksums,omitempty"`
-	Uri                    *string             `json:"uri,omitempty"`
+	Repo              *string    `json:"repo,omitempty"`
+	Path              *string    `json:"path,omitempty"`
+	Created           *string    `json:"created,omitempty"`
+	CreatedBy         *string    `json:"createdBy,omitempty"`
+	LastModified      *string    `json:"lastModified,omitempty"`
+	ModifiedBy        *string    `json:"modifiedBy,omitempty"`
+	LastUpdated       *string    `json:"lastUpdated,omitempty"`
+	DownloadUri       *string    `json:"downloadUri,omitempty"`
+	MimeType          *string    `json:"mimeType,omitempty"`
+	Size              *int       `json:"size,string,omitempty"`
+	Checksums         *Checksums `json:"checksums,omitempty"`
+	OriginalChecksums *Checksums `json:"originalChecksums,omitempty"`
+	Uri               *string    `json:"uri,omitempty"`
 }
 
 // Description: Returns the metadata of the given file. Supported by local, local-cached and virtual repositories.
