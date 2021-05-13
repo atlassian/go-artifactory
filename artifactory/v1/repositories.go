@@ -174,6 +174,7 @@ type RemoteRepository struct {
 	BlockMismatchingMimeTypes         *bool                   `json:"blockMismatchingMimeTypes,omitempty"`
 	BlockXrayUnscannedArtifacts       *bool                   `json:"blockXrayUnscannedArtifacts,omitempty"`
 	BypassHeadRequests                *bool                   `json:"bypassHeadRequests,omitempty"`
+	ChartsBaseURL                     *string                 `json:"chartsBaseUrl,omitempty"`
 	ContentSynchronisation            *ContentSynchronisation `json:"contentSynchronisation,omitempty"`
 	DebianTrivialLayout               *bool                   `json:"debianTrivialLayout,omitempty"`
 	DockerApiVersion                  *string                 `json:"dockerApiVersion,omitempty"`
