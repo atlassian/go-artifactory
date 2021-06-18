@@ -159,6 +159,102 @@ type Nuget struct {
 	V3FeedUrl           *string `json:"v3FeedUrl,omitempty"`
 }
 
+type Member struct {
+	URL     *string `json:"url,omitempty"`
+	Enabled *bool   `json:"enabled,omitempty"`
+}
+
+// application/vnd.org.jfrog.artifactory.repositories.FederatedRepositoryConfiguration+json
+type FederatedRepository struct {
+	Key                          *string   `json:"key,omitempty"`
+	RClass                       *string   `json:"rclass,omitempty"` // Mandatory element in create/replace queries (optional in "update" queries)
+	PackageType                  *string   `json:"packageType,omitempty"`
+	Members                      *[]Member `json:"members,omitempty"`
+	Description                  *string   `json:"description,omitempty"`
+	Notes                        *string   `json:"notes,omitempty"`
+	IncludesPattern              *string   `json:"includesPattern,omitempty"`
+	ExcludesPattern              *string   `json:"excludesPattern,omitempty"`
+	ArchiveBrowsingEnabled       *bool     `json:"archiveBrowsingEnabled,omitempty"`
+	BlackedOut                   *bool     `json:"blackedOut,omitempty"`
+	BlockXrayUnscannedArtifacts  *bool     `json:"blockXrayUnscannedArtifacts,omitempty"`
+	CalculateYumMetadata         *bool     `json:"calculateYumMetadata,omitempty"`
+	ChecksumPolicyType           *string   `json:"checksumPolicyType,omitempty"`
+	DebianTrivialLayout          *bool     `json:"debianTrivialLayout,omitempty"`
+	DockerApiVersion             *string   `json:"dockerApiVersion,omitempty"`
+	EnableBowerSupport           *bool     `json:"enableBowerSupport,omitempty"`
+	EnableCocoaPodsSupport       *bool     `json:"enableCocoaPodsSupport,omitempty"`
+	EnableComposerSupport        *bool     `json:"enableComposerSupport,omitempty"`
+	EnableConanSupport           *bool     `json:"enableConanSupport,omitempty"`
+	EnableDebianSupport          *bool     `json:"enableDebianSupport,omitempty"`
+	EnableDistRepoSupport        *bool     `json:"enableDistRepoSupport,omitempty"`
+	EnableDockerSupport          *bool     `json:"enableDockerSupport,omitempty"`
+	EnableFileListsIndexing      *bool     `json:"enableFileListsIndexing,omitempty"`
+	EnableGemsSupport            *bool     `json:"enableGemsSupport,omitempty"`
+	EnableGitLfsSupport          *bool     `json:"enableGitLfsSupport,omitempty"`
+	EnableNpmSupport             *bool     `json:"enableNpmSupport,omitempty"`
+	EnableNuGetSupport           *bool     `json:"enableNuGetSupport,omitempty"`
+	EnablePuppetSupport          *bool     `json:"enablePuppetSupport,omitempty"`
+	EnablePypiSupport            *bool     `json:"enablePypiSupport,omitempty"`
+	EnableVagrantSupport         *bool     `json:"enableVagrantSupport,omitempty"`
+	EnabledChefSupport           *bool     `json:"enabledChefSupport,omitempty"`
+	ForceNugetAuthentication     *bool     `json:"forceNugetAuthentication,omitempty"`
+	HandleReleases               *bool     `json:"handleReleases,omitempty"`
+	HandleSnapshots              *bool     `json:"handleSnapshots,omitempty"`
+	MaxUniqueSnapshots           *int      `json:"maxUniqueSnapshots,omitempty"`
+	MaxUniqueTags                *int      `json:"maxUniqueTags,omitempty"`
+	PropertySets                 *[]string `json:"propertySets,omitempty"`
+	RepoLayoutRef                *string   `json:"repoLayoutRef,omitempty"`
+	SnapshotVersionBehavior      *string   `json:"snapshotVersionBehavior,omitempty"`
+	SuppressPomConsistencyChecks *bool     `json:"suppressPomConsistencyChecks,omitempty"`
+	XrayIndex                    *bool     `json:"xrayIndex,omitempty"`
+	XrayMinimumBlockedSeverity   *string   `json:"xrayMinimumBlockedSeverity,omitempty"`
+	YumRootDepth                 *int      `json:"yumRootDepth,omitempty"`
+}
+
+func (r FederatedRepository) String() string {
+	res, _ := json.MarshalIndent(r, "", "    ")
+	return string(res)
+}
+
+// Creates a new repository in Artifactory with the provided configuration.
+// Since: 2.3.0
+// Notes: Requires Artifactory Pro
+// An existing repository with the same key are removed from the configuration and its content is removed!
+// Missing values are set to the default values as defined by the consumed type spec.
+// Security: Requires an admin user
+func (s *RepositoriesService) CreateFederated(ctx context.Context, repo *FederatedRepository) (*http.Response, error) {
+	return s.create(ctx, *repo.Key, repo)
+}
+
+// Retrieves the current configuration of a repository.
+// Since: 2.3.0
+// Notes: Requires Artifactory Pro
+// Security: Requires an admin user for complete repository configuration. Non-admin users will receive only partial configuration data.
+func (s *RepositoriesService) GetFederated(ctx context.Context, repo string) (*FederatedRepository, *http.Response, error) {
+	repository, resp, err := s.get(ctx, repo, new(FederatedRepository))
+	if err != nil {
+		return nil, resp, err
+	}
+	return repository.(*FederatedRepository), resp, nil
+}
+
+// Updates an exiting repository configuration in Artifactory with the provided configuration elements.
+// Since: 2.3.0
+// Notes: Requires Artifactory Pro
+// The class of a repository (the rclass attribute cannot be updated.
+// Security: Requires an admin user
+func (s *RepositoriesService) UpdateFederated(ctx context.Context, repo string, repository *FederatedRepository) (*http.Response, error) {
+	return s.update(ctx, repo, repository)
+}
+
+// Removes a repository configuration together with the whole repository content.
+// Since: 2.3.0
+// Notes: Requires Artifactory Pro
+// Security: Requires an admin user
+func (s *RepositoriesService) DeleteFederated(ctx context.Context, repo string) (*http.Response, error) {
+	return s.delete(ctx, repo)
+}
+
 type RemoteRepository struct {
 	Key                               *string                 `json:"key,omitempty"`
 	RClass                            *string                 `json:"rclass,omitempty"` // Mandatory element in create/replace queries (optional in "update" queries)
